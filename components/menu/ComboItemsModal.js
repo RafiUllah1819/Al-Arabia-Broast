@@ -14,7 +14,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
 
   // Quick-add: create a brand-new combo-only item and add it to the combo in one step
   const [quickName,       setQuickName]      = useState("");
-  const [quickQty,        setQuickQty]       = useState("1");
   const [quickSaving,     setQuickSaving]    = useState(false);
   const [quickError,      setQuickError]     = useState("");
 
@@ -158,7 +157,7 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     const addRes  = await fetch("/api/combo-items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ combo_id: product.id, combo_only_item_id: newItem.id, quantity: parseInt(quickQty) || 1 }),
+      body: JSON.stringify({ combo_id: product.id, combo_only_item_id: newItem.id, quantity: 1 }),
     });
     const addData = await addRes.json();
     setQuickSaving(false);
@@ -171,7 +170,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     fetchItems();
     setComboOnlyItems((prev) => [...prev, newItem]);
     setQuickName("");
-    setQuickQty("1");
   }
 
   function itemDisplayName(item) {
@@ -351,16 +349,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                     onChange={(e) => setQuickName(e.target.value)}
                     placeholder="e.g. 8 Piece Chicken"
                     onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
-                  />
-                </div>
-                <div className="form-group" style={{ width: "80px" }}>
-                  <label className="form-label">Qty</label>
-                  <input
-                    className="form-input"
-                    type="number"
-                    min="1"
-                    value={quickQty}
-                    onChange={(e) => setQuickQty(e.target.value)}
                   />
                 </div>
                 <button
