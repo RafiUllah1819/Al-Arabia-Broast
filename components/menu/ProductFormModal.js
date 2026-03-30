@@ -431,6 +431,25 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                 {form.type === "combo" && (
                   <>
                     <div className="form-group">
+                      <label className="form-label">
+                        Combo Selling Price <span style={{ color: "#e03131" }}>*</span>
+                      </label>
+                      <input
+                        className="form-input"
+                        type="number"
+                        name="base_price"
+                        value={form.base_price}
+                        onChange={handleChange}
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                      <span className="form-hint" style={{ fontSize: "11px", color: "#999", marginTop: "4px", display: "block" }}>
+                        Final price the customer pays for this combo deal
+                      </span>
+                    </div>
+                    <div className="form-group">
                       <label className="form-label">Sort Order</label>
                       <input
                         className="form-input"
@@ -442,9 +461,6 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                         style={{ maxWidth: "120px" }}
                       />
                     </div>
-                    <p style={{ fontSize: "12px", color: "#999", marginTop: "8px" }}>
-                      Combo contents will be managed separately after saving.
-                    </p>
                   </>
                 )}
 

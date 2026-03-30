@@ -305,6 +305,7 @@ function ProductsTab({ isAdmin, categories }) {
         <ComboItemsModal
           product={comboProduct}
           allProducts={products}
+          categories={categories}
           onClose={() => setComboProduct(null)}
         />
       )}

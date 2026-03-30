@@ -46,6 +46,12 @@ export async function createProduct(data) {
   if (type === "simple" && isNaN(parseFloat(base_price))) {
     throw new Error("Base price must be a valid number.");
   }
+  if (type === "combo" && (base_price === undefined || base_price === "" || base_price === null)) {
+    throw new Error("Combo selling price is required.");
+  }
+  if (type === "combo" && isNaN(parseFloat(base_price))) {
+    throw new Error("Combo selling price must be a valid number.");
+  }
 
   // Auto-generate slug from name if not provided
   const baseSlug = toSlug(slug?.trim() || name.trim());
@@ -58,7 +64,7 @@ export async function createProduct(data) {
     barcode:      barcode?.trim() || null,
     description:  description?.trim() || null,
     type,
-    base_price:   type === "simple" ? parseFloat(base_price) : null,
+    base_price:   (type === "simple" || type === "combo") ? parseFloat(base_price) : null,
     image_url:    image_url.trim(),
     is_available: is_available !== false,
     is_active:    is_active    !== false,
@@ -79,6 +85,12 @@ export async function updateProduct(id, data) {
   if (type === "simple" && isNaN(parseFloat(base_price))) {
     throw new Error("Base price must be a valid number.");
   }
+  if (type === "combo" && (base_price === undefined || base_price === "" || base_price === null)) {
+    throw new Error("Combo selling price is required.");
+  }
+  if (type === "combo" && isNaN(parseFloat(base_price))) {
+    throw new Error("Combo selling price must be a valid number.");
+  }
 
   // If the slug field was left blank, regenerate from the new name
   const baseSlug  = toSlug(slug?.trim() || name.trim());
@@ -91,7 +103,7 @@ export async function updateProduct(id, data) {
     barcode:      barcode?.trim() || null,
     description:  description?.trim() || null,
     type,
-    base_price:   type === "simple" ? parseFloat(base_price) : null,
+    base_price:   (type === "simple" || type === "combo") ? parseFloat(base_price) : null,
     image_url:    image_url.trim(),
     is_available: Boolean(is_available),
     is_active:    Boolean(is_active),

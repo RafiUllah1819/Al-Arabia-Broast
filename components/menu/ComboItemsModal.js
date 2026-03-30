@@ -1,17 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
-export default function ComboItemsModal({ product, allProducts, onClose }) {
-  const [items,    setItems]   = useState([]);
-  const [loading,  setLoading] = useState(true);
-  const [selected, setSelected] = useState("");
-  const [qty,      setQty]      = useState("1");
-  const [error,    setError]    = useState("");
-  const [saving,   setSaving]   = useState(false);
+export default function ComboItemsModal({ product, allProducts, categories, onClose }) {
+  const [items,          setItems]         = useState([]);
+  const [loading,        setLoading]       = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [selected,       setSelected]      = useState("");
+  const [qty,            setQty]           = useState("1");
+  const [error,          setError]         = useState("");
+  const [saving,         setSaving]        = useState(false);
 
   // Products that can be added: exclude combos and the product itself
-  const addableProducts = allProducts.filter(
-    (p) => p.id !== product.id && p.type !== "combo"
-  );
+  const addableProducts = useMemo(() => {
+    const base = allProducts.filter((p) => p.id !== product.id && p.type !== "combo");
+    if (!categoryFilter) return base;
+    return base.filter((p) => String(p.category_id) === String(categoryFilter));
+  }, [allProducts, product.id, categoryFilter]);
 
   useEffect(() => { fetchItems(); }, []);
 
@@ -35,7 +38,7 @@ export default function ComboItemsModal({ product, allProducts, onClose }) {
     const data = await res.json();
     setSaving(false);
     if (!res.ok) { setError(data.error); return; }
-    // Re-fetch to get product_name from join
+    // Re-fetch to get product_name and base_price from join
     fetchItems();
     setSelected("");
     setQty("1");
@@ -58,6 +61,11 @@ export default function ComboItemsModal({ product, allProducts, onClose }) {
     if (res.ok) setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
+  // Summary calculations
+  const itemsTotal = items.reduce((sum, i) => sum + parseFloat(i.base_price || 0) * i.quantity, 0);
+  const comboPrice = parseFloat(product.base_price || 0);
+  const hasSummary = items.length > 0 && comboPrice > 0;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
@@ -67,6 +75,34 @@ export default function ComboItemsModal({ product, allProducts, onClose }) {
         </div>
 
         <div className="modal-body" style={{ gap: "20px" }}>
+
+          {/* Summary strip */}
+          {hasSummary && (
+            <div style={{
+              display: "flex", gap: "24px", background: "#f8f9fa",
+              border: "1px solid #e9ecef", borderRadius: "6px",
+              padding: "10px 16px", fontSize: "13px",
+            }}>
+              <span>
+                <span style={{ color: "#888" }}>Included items total: </span>
+                <strong>Rs. {itemsTotal.toFixed(2)}</strong>
+              </span>
+              <span>
+                <span style={{ color: "#888" }}>Combo selling price: </span>
+                <strong style={{ color: "#7048e8" }}>Rs. {comboPrice.toFixed(2)}</strong>
+              </span>
+              {itemsTotal > 0 && comboPrice > 0 && (
+                <span>
+                  <span style={{ color: "#888" }}>Saving: </span>
+                  <strong style={{ color: "#2f9e44" }}>
+                    Rs. {Math.max(0, itemsTotal - comboPrice).toFixed(2)}
+                  </strong>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Items table */}
           {loading ? (
             <p style={{ color: "#999" }}>Loading...</p>
           ) : (
@@ -118,13 +154,29 @@ export default function ComboItemsModal({ product, allProducts, onClose }) {
             </table>
           )}
 
-          {/* Add product to combo */}
+          {/* Add product row */}
           <div style={{ borderTop: "1px solid #eee", paddingTop: "16px" }}>
             <p style={{ fontSize: "12px", fontWeight: 600, color: "#555", marginBottom: "10px" }}>
               ADD PRODUCT TO COMBO
             </p>
-            <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
-              <div className="form-group" style={{ flex: 1 }}>
+            <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", flexWrap: "wrap" }}>
+              {/* Category filter */}
+              <div className="form-group" style={{ width: "160px" }}>
+                <label className="form-label">Filter by Category</label>
+                <select
+                  className="form-input"
+                  value={categoryFilter}
+                  onChange={(e) => { setCategoryFilter(e.target.value); setSelected(""); }}
+                >
+                  <option value="">All categories</option>
+                  {(categories || []).map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Product select */}
+              <div className="form-group" style={{ flex: 1, minWidth: "160px" }}>
                 <label className="form-label">Product</label>
                 <select className="form-input" value={selected} onChange={(e) => setSelected(e.target.value)}>
                   <option value="">— Select product —</option>
@@ -133,17 +185,21 @@ export default function ComboItemsModal({ product, allProducts, onClose }) {
                   ))}
                 </select>
               </div>
+
+              {/* Qty */}
               <div className="form-group" style={{ width: "80px" }}>
                 <label className="form-label">Qty</label>
                 <input className="form-input" type="number" min="1"
                   value={qty} onChange={(e) => setQty(e.target.value)} />
               </div>
+
               <button className="btn btn-primary" onClick={handleAdd} disabled={!selected || saving}>
                 {saving ? "..." : "+ Add"}
               </button>
             </div>
             {error && <p className="form-error" style={{ marginTop: "8px" }}>{error}</p>}
           </div>
+
         </div>
 
         <div className="modal-footer">
