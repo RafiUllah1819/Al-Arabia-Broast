@@ -43,7 +43,8 @@ export default function LoginPage() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h1 style={styles.logo}>🍽 RestaurantOS</h1>
+        <h1 style={styles.logo}>🍽 Al-Arabia</h1>
+        <p style={styles.logoSub}>Broast and Pizza Point</p>
         <p style={styles.subtitle}>Sign in to your account</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
@@ -99,9 +100,16 @@ const styles = {
     width: "360px",
   },
   logo: {
-    fontSize: "20px",
-    marginBottom: "6px",
+    fontSize: "22px",
+    marginBottom: "2px",
     textAlign: "center",
+  },
+  logoSub: {
+    fontSize: "12px",
+    color: "#888",
+    textAlign: "center",
+    marginBottom: "6px",
+    letterSpacing: "0.3px",
   },
   subtitle: {
     color: "#999",
