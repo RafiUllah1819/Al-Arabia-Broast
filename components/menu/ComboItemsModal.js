@@ -8,7 +8,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
   const [loadingOptions,  setLoadingOptions] = useState(true);
   const [categoryFilter,  setCategoryFilter] = useState("");
   const [selected,        setSelected]       = useState(""); // "p:productId|variantId" or "c:itemId"
-  const [qty,             setQty]            = useState("1");
   const [error,           setError]          = useState("");
   const [saving,          setSaving]         = useState(false);
 
@@ -91,7 +90,7 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     let body;
     if (selected.startsWith("c:")) {
       // Combo-only item
-      body = { combo_id: product.id, combo_only_item_id: parseInt(selected.slice(2)), quantity: parseInt(qty) || 1 };
+      body = { combo_id: product.id, combo_only_item_id: parseInt(selected.slice(2)), quantity: 1 };
     } else {
       // Menu product / variant  (key format: "p:productId|variantId")
       const [productIdStr, variantIdStr] = selected.slice(2).split("|");
@@ -99,7 +98,7 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
         combo_id:   product.id,
         product_id: parseInt(productIdStr),
         variant_id: variantIdStr === "null" ? null : parseInt(variantIdStr),
-        quantity:   parseInt(qty) || 1,
+        quantity:   1,
       };
     }
 
@@ -310,18 +309,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                       </optgroup>
                     )}
                   </select>
-                </div>
-
-                {/* Qty */}
-                <div className="form-group" style={{ width: "80px" }}>
-                  <label className="form-label">Qty</label>
-                  <input
-                    className="form-input"
-                    type="number"
-                    min="1"
-                    value={qty}
-                    onChange={(e) => setQty(e.target.value)}
-                  />
                 </div>
 
                 <button
