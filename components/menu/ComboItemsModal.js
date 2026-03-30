@@ -55,40 +55,47 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
 
     for (const p of simpleProducts) {
       list.push({
-        key:        `${p.id}|null`,
-        label:      p.name,
-        productId:  p.id,
-        variantId:  null,
-        categoryId: p.category_id,
-        price:      parseFloat(p.base_price || 0),
+        key:          `${p.id}|null`,
+        label:        p.name,
+        productId:    p.id,
+        variantId:    null,
+        categoryId:   p.category_id,
+        price:        parseFloat(p.base_price || 0),
+        isComboOnly:  Boolean(p.is_combo_only),
       });
     }
 
     for (const p of variantProducts) {
       for (const v of variantMap[p.id] || []) {
-        if (!v.is_active || !v.is_available) continue; // skip inactive/unavailable variants
+        if (!v.is_active || !v.is_available) continue;
         list.push({
-          key:        `${p.id}|${v.id}`,
-          label:      `${p.name} — ${v.name}`,
-          productId:  p.id,
-          variantId:  v.id,
-          categoryId: p.category_id,
-          price:      parseFloat(v.price || 0),
+          key:         `${p.id}|${v.id}`,
+          label:       `${p.name} — ${v.name}`,
+          productId:   p.id,
+          variantId:   v.id,
+          categoryId:  p.category_id,
+          price:       parseFloat(v.price || 0),
+          isComboOnly: Boolean(p.is_combo_only),
         });
       }
     }
 
-    // Sort: by category then by label
+    // Sort alphabetically within each group
     list.sort((a, b) => a.label.localeCompare(b.label));
 
     setSellableItems(list);
     setLoadingOptions(false);
   }
 
-  // Filtered sellable items for the dropdown
-  const filteredOptions = useMemo(() => {
-    if (!categoryFilter) return sellableItems;
-    return sellableItems.filter((i) => String(i.categoryId) === String(categoryFilter));
+  // Filtered sellable items for the dropdown, split into two groups
+  const { regularOptions, comboOnlyOptions } = useMemo(() => {
+    const filtered = categoryFilter
+      ? sellableItems.filter((i) => String(i.categoryId) === String(categoryFilter))
+      : sellableItems;
+    return {
+      regularOptions:   filtered.filter((i) => !i.isComboOnly),
+      comboOnlyOptions: filtered.filter((i) =>  i.isComboOnly),
+    };
   }, [sellableItems, categoryFilter]);
 
   async function handleAdd() {
@@ -278,12 +285,24 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                     onChange={(e) => setSelected(e.target.value)}
                   >
                     <option value="">— Select item —</option>
-                    {filteredOptions.map((opt) => (
-                      <option key={opt.key} value={opt.key}>
-                        {opt.label}
-                        {opt.price > 0 ? `  (Rs. ${opt.price.toFixed(0)})` : ""}
-                      </option>
-                    ))}
+                    {regularOptions.length > 0 && (
+                      <optgroup label="Regular Products">
+                        {regularOptions.map((opt) => (
+                          <option key={opt.key} value={opt.key}>
+                            {opt.label}{opt.price > 0 ? `  (Rs. ${opt.price.toFixed(0)})` : ""}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {comboOnlyOptions.length > 0 && (
+                      <optgroup label="Combo-Only Items">
+                        {comboOnlyOptions.map((opt) => (
+                          <option key={opt.key} value={opt.key}>
+                            {opt.label}{opt.price > 0 ? `  (Rs. ${opt.price.toFixed(0)})` : ""}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
 

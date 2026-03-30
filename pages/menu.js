@@ -218,6 +218,11 @@ function ProductsTab({ isAdmin, categories }) {
                   <td style={{ color: "#888" }}>{p.category_name || "—"}</td>
                   <td>
                     <span className="badge" style={TYPE_COLORS[p.type]}>{p.type}</span>
+                    {p.is_combo_only && (
+                      <span className="badge" style={{ marginLeft: "6px", background: "#f3f0ff", color: "#7048e8", fontSize: "11px" }}>
+                        combo only
+                      </span>
+                    )}
                   </td>
                   <td>{formatPrice(p.base_price)}</td>
                   <td>
