@@ -12,6 +12,12 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
   const [error,           setError]          = useState("");
   const [saving,          setSaving]         = useState(false);
 
+  // Quick-add: create a brand-new combo-only item and add it to the combo in one step
+  const [quickName,       setQuickName]      = useState("");
+  const [quickQty,        setQuickQty]       = useState("1");
+  const [quickSaving,     setQuickSaving]    = useState(false);
+  const [quickError,      setQuickError]     = useState("");
+
   useEffect(() => {
     fetchItems();
     buildOptions();
@@ -126,6 +132,46 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     if (!confirm("Remove this item from the combo?")) return;
     const res = await fetch(`/api/combo-items/${id}`, { method: "DELETE" });
     if (res.ok) setItems((prev) => prev.filter((i) => i.id !== id));
+  }
+
+  async function handleQuickAdd() {
+    if (!quickName.trim()) return;
+    setQuickError("");
+    setQuickSaving(true);
+
+    // Step 1: create the new combo-only item
+    const createRes  = await fetch("/api/combo-only-items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: quickName.trim(), sort_order: 0 }),
+    });
+    const createData = await createRes.json();
+    if (!createRes.ok) {
+      setQuickError(createData.error || "Failed to create item.");
+      setQuickSaving(false);
+      return;
+    }
+
+    const newItem = createData.item;
+
+    // Step 2: add it to the combo
+    const addRes  = await fetch("/api/combo-items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ combo_id: product.id, combo_only_item_id: newItem.id, quantity: parseInt(quickQty) || 1 }),
+    });
+    const addData = await addRes.json();
+    setQuickSaving(false);
+    if (!addRes.ok) {
+      setQuickError(addData.error || "Failed to add item to combo.");
+      return;
+    }
+
+    // Refresh both the combo items list and the combo-only items pool
+    fetchItems();
+    setComboOnlyItems((prev) => [...prev, newItem]);
+    setQuickName("");
+    setQuickQty("1");
   }
 
   function itemDisplayName(item) {
@@ -290,6 +336,43 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
               </div>
             )}
             {error && <p className="form-error" style={{ marginTop: "8px" }}>{error}</p>}
+
+            {/* Quick-add: type a new item name that doesn't exist anywhere yet */}
+            <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #e9ecef" }}>
+              <p style={{ fontSize: "11px", color: "#aaa", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Or type a new item not in any list
+              </p>
+              <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div className="form-group" style={{ flex: 1, minWidth: "200px" }}>
+                  <label className="form-label">New item name</label>
+                  <input
+                    className="form-input"
+                    value={quickName}
+                    onChange={(e) => setQuickName(e.target.value)}
+                    placeholder="e.g. 8 Piece Chicken"
+                    onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
+                  />
+                </div>
+                <div className="form-group" style={{ width: "80px" }}>
+                  <label className="form-label">Qty</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="1"
+                    value={quickQty}
+                    onChange={(e) => setQuickQty(e.target.value)}
+                  />
+                </div>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleQuickAdd}
+                  disabled={!quickName.trim() || quickSaving}
+                >
+                  {quickSaving ? "..." : "+ Add New"}
+                </button>
+              </div>
+              {quickError && <p className="form-error" style={{ marginTop: "8px" }}>{quickError}</p>}
+            </div>
           </div>
 
         </div>
