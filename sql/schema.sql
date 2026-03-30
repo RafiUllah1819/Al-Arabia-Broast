@@ -140,8 +140,9 @@ CREATE TABLE IF NOT EXISTS product_addon_groups (
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS combo_items (
   id         SERIAL  PRIMARY KEY,
-  combo_id   INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,  -- the combo product
-  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,  -- included product
+  combo_id   INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,       -- the combo product
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,       -- included product
+  variant_id INTEGER          REFERENCES product_variants(id) ON DELETE SET NULL, -- specific variant (NULL for simple products)
   quantity   INTEGER NOT NULL DEFAULT 1
 );
 
