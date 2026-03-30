@@ -1,6 +1,11 @@
-import fs   from "fs";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 import { requireAuth } from "../../../lib/apiAuth";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export default async function handler(req, res) {
   const user = await requireAuth(req, res, ["admin", "manager"]);
@@ -21,20 +26,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid file type. Use JPG, PNG, WebP, or GIF." });
   }
 
-  // Decode base64 (strip data URL prefix if present)
-  const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
-  const buffer = Buffer.from(base64Data, "base64");
+  // Ensure it's a proper data URL for Cloudinary
+  const dataUrl = base64.startsWith("data:")
+    ? base64
+    : `data:${mimeType};base64,${base64}`;
 
-  const extMap = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
-  const ext = extMap[mimeType] || "jpg";
-  const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  try {
+    const result = await cloudinary.uploader.upload(dataUrl, {
+      folder: "restaurant/products",
+      resource_type: "image",
+    });
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+    return res.status(200).json({ url: result.secure_url });
+  } catch (err) {
+    console.error("Cloudinary upload error:", err);
+    return res.status(500).json({ error: "Upload failed." });
   }
-
-  fs.writeFileSync(path.join(uploadsDir, uniqueName), buffer);
-
-  return res.status(200).json({ url: `/uploads/${uniqueName}` });
 }
