@@ -218,11 +218,6 @@ function ProductsTab({ isAdmin, categories }) {
                   <td style={{ color: "#888" }}>{p.category_name || "—"}</td>
                   <td>
                     <span className="badge" style={TYPE_COLORS[p.type]}>{p.type}</span>
-                    {p.is_combo_only && (
-                      <span className="badge" style={{ marginLeft: "6px", background: "#f3f0ff", color: "#7048e8", fontSize: "11px" }}>
-                        combo only
-                      </span>
-                    )}
                   </td>
                   <td>{formatPrice(p.base_price)}</td>
                   <td>
@@ -318,6 +313,162 @@ function ProductsTab({ isAdmin, categories }) {
   );
 }
 
+// ── Combo-Only Items Tab ──────────────────────────────────────────────────────
+
+function ComboOnlyItemsTab() {
+  const [items,   setItems]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState("");
+  const [adding,  setAdding]  = useState(false);
+  const [editId,  setEditId]  = useState(null);
+  const [editName, setEditName] = useState("");
+  const [saving,  setSaving]  = useState(false);
+  const [error,   setError]   = useState("");
+
+  useEffect(() => { fetchItems(); }, []);
+
+  async function fetchItems() {
+    setLoading(true);
+    const res  = await fetch("/api/combo-only-items");
+    const data = await res.json();
+    setItems(data.items || []);
+    setLoading(false);
+  }
+
+  async function handleAdd(e) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setError("");
+    setAdding(true);
+    const res  = await fetch("/api/combo-only-items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName.trim(), sort_order: 0 }),
+    });
+    const data = await res.json();
+    setAdding(false);
+    if (!res.ok) { setError(data.error || "Failed to add item."); return; }
+    setItems((prev) => [...prev, data.item]);
+    setNewName("");
+  }
+
+  async function handleSaveEdit(id) {
+    if (!editName.trim()) return;
+    setError("");
+    setSaving(true);
+    const res  = await fetch(`/api/combo-only-items/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: editName.trim(), sort_order: 0 }),
+    });
+    const data = await res.json();
+    setSaving(false);
+    if (!res.ok) { setError(data.error || "Failed to save."); return; }
+    setItems((prev) => prev.map((i) => (i.id === id ? data.item : i)));
+    setEditId(null);
+    setEditName("");
+  }
+
+  async function handleDelete(id) {
+    if (!confirm("Delete this item? It will be removed from any combos that use it.")) return;
+    const res = await fetch(`/api/combo-only-items/${id}`, { method: "DELETE" });
+    if (res.ok) setItems((prev) => prev.filter((i) => i.id !== id));
+  }
+
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <span style={{ color: "#888", fontSize: "13px" }}>{items.length} items</span>
+          <p style={{ fontSize: "12px", color: "#aaa", margin: "4px 0 0" }}>
+            Items used only inside combos — not shown on the POS menu.
+          </p>
+        </div>
+      </div>
+      {error && <p className="form-error" style={{ marginBottom: "12px" }}>{error}</p>}
+
+      <div className="table-container">
+        {loading ? <p style={{ padding: "24px", color: "#999" }}>Loading...</p> : (
+          <table className="data-table">
+            <thead>
+              <tr><th>Item Name</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    {editId === item.id ? (
+                      <input
+                        className="form-input"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        style={{ maxWidth: "320px" }}
+                        autoFocus
+                      />
+                    ) : (
+                      <span style={{ fontWeight: 500 }}>{item.name}</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      {editId === item.id ? (
+                        <>
+                          <button className="btn btn-sm btn-primary" onClick={() => handleSaveEdit(item.id)} disabled={saving}>
+                            {saving ? "Saving..." : "Save"}
+                          </button>
+                          <button className="btn btn-sm btn-secondary" onClick={() => { setEditId(null); setEditName(""); }}>
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="btn btn-sm btn-secondary" onClick={() => { setEditId(item.id); setEditName(item.name); }}>
+                            Edit
+                          </button>
+                          <button className="btn btn-sm"
+                            style={{ background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }}
+                            onClick={() => handleDelete(item.id)}>
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={2} style={{ textAlign: "center", color: "#bbb", padding: "32px" }}>
+                    No combo-only items yet. Add one below.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Inline add form */}
+      <form onSubmit={handleAdd} style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginTop: "16px" }}>
+        <div className="form-group" style={{ flex: 1, maxWidth: "360px", margin: 0 }}>
+          <label className="form-label">New Item Name</label>
+          <input
+            className="form-input"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="e.g. 8 Piece Chicken"
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={adding || !newName.trim()}>
+          {adding ? "Adding..." : "+ Add Item"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 // ── Main Menu Page ────────────────────────────────────────────────────────────
 
 export default function MenuPage() {
@@ -345,6 +496,10 @@ export default function MenuPage() {
         </button>
         {isAdmin && (
           <>
+            <button className={`tab-btn ${activeTab === "combo-items" ? "active" : ""}`}
+              onClick={() => setActiveTab("combo-items")}>
+              Combo Items
+            </button>
             <button className={`tab-btn ${activeTab === "addons" ? "active" : ""}`}
               onClick={() => setActiveTab("addons")}>
               Add-ons
@@ -360,6 +515,9 @@ export default function MenuPage() {
       <div style={{ marginTop: "20px" }}>
         {activeTab === "products" && (
           <ProductsTab isAdmin={isAdmin} categories={categories} />
+        )}
+        {activeTab === "combo-items" && isAdmin && (
+          <ComboOnlyItemsTab />
         )}
         {activeTab === "addons" && isAdmin && (
           <AddonsTab isAdmin={isAdmin} />

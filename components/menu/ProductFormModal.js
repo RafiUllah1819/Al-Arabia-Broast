@@ -5,7 +5,7 @@ const PRODUCT_TYPES = ["simple", "variant", "combo"];
 const EMPTY = {
   name: "", slug: "", barcode: "", description: "", category_id: "",
   type: "simple", base_price: "", sort_order: "0",
-  is_available: true, is_active: true, is_combo_only: false,
+  is_available: true, is_active: true,
 };
 
 function toSlug(text) {
@@ -39,12 +39,11 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
         barcode:      product.barcode || "",
         description:  product.description || "",
         category_id:  product.category_id ? String(product.category_id) : "",
-        type:          product.type,
-        base_price:    product.base_price != null ? String(product.base_price) : "",
-        sort_order:    String(product.sort_order),
-        is_available:  product.is_available,
-        is_active:     product.is_active,
-        is_combo_only: product.is_combo_only || false,
+        type:         product.type,
+        base_price:   product.base_price != null ? String(product.base_price) : "",
+        sort_order:   String(product.sort_order),
+        is_available: product.is_available,
+        is_active:    product.is_active,
       });
       setImagePreview(product.image_url || "");
       setImageFile(null);
@@ -302,7 +301,7 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                   />
                 </div>
 
-                <div style={{ display: "flex", gap: "16px", marginTop: "4px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "16px", marginTop: "4px" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
                     <input type="checkbox" name="is_available" checked={form.is_available} onChange={handleChange} />
                     Available
@@ -310,26 +309,6 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
                     <input type="checkbox" name="is_active" checked={form.is_active} onChange={handleChange} />
                     Active
-                  </label>
-                </div>
-
-                <div style={{ marginTop: "12px", padding: "10px 12px", background: form.is_combo_only ? "#f3f0ff" : "#f8f9fa", borderRadius: "6px", border: `1px solid ${form.is_combo_only ? "#d0bfff" : "#e9ecef"}` }}>
-                  <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      name="is_combo_only"
-                      checked={form.is_combo_only}
-                      onChange={handleChange}
-                      style={{ marginTop: "2px" }}
-                    />
-                    <div>
-                      <span style={{ fontSize: "13px", fontWeight: 600, color: form.is_combo_only ? "#7048e8" : "#555" }}>
-                        Combo-only item
-                      </span>
-                      <p style={{ fontSize: "11px", color: "#888", margin: "2px 0 0" }}>
-                        Hidden from the main POS menu. Only usable inside combo contents.
-                      </p>
-                    </div>
                   </label>
                 </div>
               </div>

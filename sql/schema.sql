@@ -68,11 +68,10 @@ CREATE TABLE IF NOT EXISTS products (
   base_price   NUMERIC(10,2),                  -- NULL for variant type
   image_url    VARCHAR(255) NOT NULL,
   slug         VARCHAR(150)  UNIQUE,
-  is_available  BOOLEAN       NOT NULL DEFAULT TRUE,
-  is_active     BOOLEAN       NOT NULL DEFAULT TRUE,
-  is_combo_only BOOLEAN       NOT NULL DEFAULT FALSE, -- TRUE = hidden from POS, only usable inside combo contents
-  sort_order    INTEGER       NOT NULL DEFAULT 0,
-  created_at    TIMESTAMP     NOT NULL DEFAULT NOW()
+  is_available BOOLEAN       NOT NULL DEFAULT TRUE,
+  is_active    BOOLEAN       NOT NULL DEFAULT TRUE,
+  sort_order   INTEGER       NOT NULL DEFAULT 0,
+  created_at   TIMESTAMP     NOT NULL DEFAULT NOW()
 );
 
 
@@ -135,16 +134,32 @@ CREATE TABLE IF NOT EXISTS product_addon_groups (
 
 
 -- ------------------------------------------------------------
+-- COMBO-ONLY ITEMS
+-- Internal items that exist only inside combos/deals.
+-- They are NOT products and do NOT appear on the POS menu.
+-- Examples: "8 Piece Chicken", "4 Naan", "2 Raita"
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS combo_only_items (
+  id         SERIAL       PRIMARY KEY,
+  name       VARCHAR(150) NOT NULL,
+  sort_order INTEGER      NOT NULL DEFAULT 0
+);
+
+
+-- ------------------------------------------------------------
 -- COMBO ITEMS
--- Defines which products are included in a combo/deal product.
+-- Defines what is included in a combo/deal product.
+-- Each row is either a menu product/variant OR a combo-only item.
 -- Only used when product type = 'combo'.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS combo_items (
-  id         SERIAL  PRIMARY KEY,
-  combo_id   INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,       -- the combo product
-  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,       -- included product
-  variant_id INTEGER          REFERENCES product_variants(id) ON DELETE SET NULL, -- specific variant (NULL for simple products)
-  quantity   INTEGER NOT NULL DEFAULT 1
+  id                 SERIAL  PRIMARY KEY,
+  combo_id           INTEGER NOT NULL REFERENCES products(id)         ON DELETE CASCADE,
+  product_id         INTEGER          REFERENCES products(id)         ON DELETE CASCADE,  -- set when adding a menu product
+  variant_id         INTEGER          REFERENCES product_variants(id) ON DELETE SET NULL, -- set when the product is variant-type
+  combo_only_item_id INTEGER          REFERENCES combo_only_items(id) ON DELETE CASCADE,  -- set when adding a combo-only item
+  quantity           INTEGER NOT NULL DEFAULT 1
+  -- exactly one of (product_id, combo_only_item_id) must be non-null
 );
 
 

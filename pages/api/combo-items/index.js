@@ -20,8 +20,8 @@ export default async function handler(req, res) {
 
   if (req.method === "POST") {
     try {
-      const { combo_id, product_id, variant_id, quantity } = req.body;
-      const item = await addItemToCombo({ combo_id, product_id, variant_id: variant_id || null, quantity });
+      const { combo_id, product_id, variant_id, combo_only_item_id, quantity } = req.body;
+      const item = await addItemToCombo({ combo_id, product_id, variant_id, combo_only_item_id, quantity });
       return res.status(201).json({ item });
     } catch (err) {
       return res.status(err.status || 400).json({ error: err.message });

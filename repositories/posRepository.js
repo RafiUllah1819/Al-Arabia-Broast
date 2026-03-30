@@ -24,7 +24,7 @@ export async function getPOSMenu() {
             c.name AS category_name
      FROM   products p
      LEFT   JOIN categories c ON c.id = p.category_id
-     WHERE  p.is_active = TRUE AND p.is_available = TRUE AND p.is_combo_only = FALSE
+     WHERE  p.is_active = TRUE AND p.is_available = TRUE
      ORDER  BY c.sort_order ASC NULLS LAST, p.sort_order ASC, p.name ASC`
   ).catch((err) => { throw Object.assign(err, { _step: "products" }); });
 

@@ -1,20 +1,20 @@
 import { useState, useEffect, useMemo } from "react";
 
 export default function ComboItemsModal({ product, allProducts, categories, onClose }) {
-  const [items,          setItems]         = useState([]);
-  const [loadingItems,   setLoadingItems]  = useState(true);
-  const [sellableItems,  setSellableItems] = useState([]); // flat list: simple products + variants
-  const [loadingOptions, setLoadingOptions] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [selected,       setSelected]      = useState(""); // "productId|variantId" or "productId|null"
-  const [qty,            setQty]           = useState("1");
-  const [error,          setError]         = useState("");
-  const [saving,         setSaving]        = useState(false);
+  const [items,           setItems]          = useState([]);
+  const [loadingItems,    setLoadingItems]   = useState(true);
+  const [menuOptions,     setMenuOptions]    = useState([]); // simple products + variants
+  const [comboOnlyItems,  setComboOnlyItems] = useState([]); // combo-only items from separate table
+  const [loadingOptions,  setLoadingOptions] = useState(true);
+  const [categoryFilter,  setCategoryFilter] = useState("");
+  const [selected,        setSelected]       = useState(""); // "p:productId|variantId" or "c:itemId"
+  const [qty,             setQty]            = useState("1");
+  const [error,           setError]          = useState("");
+  const [saving,          setSaving]         = useState(false);
 
-  // On mount: load existing combo items + build the flat sellable items list
   useEffect(() => {
     fetchItems();
-    buildSellableItems();
+    buildOptions();
   }, []);
 
   async function fetchItems() {
@@ -25,96 +25,83 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     setLoadingItems(false);
   }
 
-  async function buildSellableItems() {
+  async function buildOptions() {
     setLoadingOptions(true);
 
-    // Products eligible to be added: not combos, not the combo itself
-    const eligible = allProducts.filter((p) => p.id !== product.id && p.type !== "combo");
-
-    const simpleProducts  = eligible.filter((p) => p.type === "simple");
+    // Fetch combo-only items and variants for variant products in parallel
+    const eligible        = allProducts.filter((p) => p.id !== product.id && p.type !== "combo");
     const variantProducts = eligible.filter((p) => p.type === "variant");
+    const simpleProducts  = eligible.filter((p) => p.type === "simple");
 
-    // Fetch all variants for every variant-type product in parallel
-    const variantResults = await Promise.all(
-      variantProducts.map((p) =>
+    const [comboOnlyRes, ...variantResults] = await Promise.all([
+      fetch("/api/combo-only-items").then((r) => r.json()).catch(() => ({ items: [] })),
+      ...variantProducts.map((p) =>
         fetch(`/api/variants?product_id=${p.id}`)
           .then((r) => r.json())
-          .then((d) => ({ productId: p.id, variants: d.variants || [] }))
-          .catch(() => ({ productId: p.id, variants: [] }))
-      )
-    );
+          .then((d) => ({ productId: p.id, categoryId: p.category_id, productName: p.name, variants: d.variants || [] }))
+          .catch(() => ({ productId: p.id, categoryId: p.category_id, productName: p.name, variants: [] }))
+      ),
+    ]);
 
-    // Build variantMap: productId → variants array
-    const variantMap = {};
-    for (const { productId, variants } of variantResults) {
-      variantMap[productId] = variants;
-    }
+    setComboOnlyItems(comboOnlyRes.items || []);
 
-    // Build flat sellable list
+    // Build flat menu options list (no prices)
     const list = [];
 
     for (const p of simpleProducts) {
       list.push({
-        key:          `${p.id}|null`,
-        label:        p.name,
-        productId:    p.id,
-        variantId:    null,
-        categoryId:   p.category_id,
-        price:        parseFloat(p.base_price || 0),
-        isComboOnly:  Boolean(p.is_combo_only),
+        key:        `p:${p.id}|null`,
+        label:      p.name,
+        categoryId: p.category_id,
       });
     }
 
-    for (const p of variantProducts) {
-      for (const v of variantMap[p.id] || []) {
+    for (const { productId, categoryId, productName, variants } of variantResults) {
+      for (const v of variants) {
         if (!v.is_active || !v.is_available) continue;
         list.push({
-          key:         `${p.id}|${v.id}`,
-          label:       `${p.name} — ${v.name}`,
-          productId:   p.id,
-          variantId:   v.id,
-          categoryId:  p.category_id,
-          price:       parseFloat(v.price || 0),
-          isComboOnly: Boolean(p.is_combo_only),
+          key:        `p:${productId}|${v.id}`,
+          label:      `${productName} — ${v.name}`,
+          categoryId,
         });
       }
     }
 
-    // Sort alphabetically within each group
     list.sort((a, b) => a.label.localeCompare(b.label));
-
-    setSellableItems(list);
+    setMenuOptions(list);
     setLoadingOptions(false);
   }
 
-  // Filtered sellable items for the dropdown, split into two groups
-  const { regularOptions, comboOnlyOptions } = useMemo(() => {
-    const filtered = categoryFilter
-      ? sellableItems.filter((i) => String(i.categoryId) === String(categoryFilter))
-      : sellableItems;
-    return {
-      regularOptions:   filtered.filter((i) => !i.isComboOnly),
-      comboOnlyOptions: filtered.filter((i) =>  i.isComboOnly),
-    };
-  }, [sellableItems, categoryFilter]);
+  // Apply category filter to menu options only (combo-only items have no category)
+  const filteredMenuOptions = useMemo(() => {
+    if (!categoryFilter) return menuOptions;
+    return menuOptions.filter((i) => String(i.categoryId) === String(categoryFilter));
+  }, [menuOptions, categoryFilter]);
 
   async function handleAdd() {
     if (!selected) return;
-    const [productIdStr, variantIdStr] = selected.split("|");
-    const productId = parseInt(productIdStr);
-    const variantId = variantIdStr === "null" ? null : parseInt(variantIdStr);
-
     setError("");
     setSaving(true);
+
+    let body;
+    if (selected.startsWith("c:")) {
+      // Combo-only item
+      body = { combo_id: product.id, combo_only_item_id: parseInt(selected.slice(2)), quantity: parseInt(qty) || 1 };
+    } else {
+      // Menu product / variant  (key format: "p:productId|variantId")
+      const [productIdStr, variantIdStr] = selected.slice(2).split("|");
+      body = {
+        combo_id:   product.id,
+        product_id: parseInt(productIdStr),
+        variant_id: variantIdStr === "null" ? null : parseInt(variantIdStr),
+        quantity:   parseInt(qty) || 1,
+      };
+    }
+
     const res  = await fetch("/api/combo-items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        combo_id:   product.id,
-        product_id: productId,
-        variant_id: variantId,
-        quantity:   parseInt(qty) || 1,
-      }),
+      body: JSON.stringify(body),
     });
     const data = await res.json();
     setSaving(false);
@@ -131,9 +118,7 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
       body: JSON.stringify({ quantity: parseInt(newQty) }),
     });
     if (res.ok) {
-      setItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, quantity: parseInt(newQty) } : i))
-      );
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantity: parseInt(newQty) } : i)));
     }
   }
 
@@ -143,19 +128,17 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     if (res.ok) setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
-  // Display label for an existing combo item row
   function itemDisplayName(item) {
-    if (item.variant_name) return `${item.product_name} — ${item.variant_name}`;
+    if (item.combo_only_item_id) return item.combo_only_item_name;
+    if (item.variant_name)       return `${item.product_name} — ${item.variant_name}`;
     return item.product_name;
   }
 
-  // Summary calculations
-  const itemsTotal = items.reduce((sum, i) => {
-    const price = i.variant_price != null ? parseFloat(i.variant_price) : parseFloat(i.product_base_price || 0);
-    return sum + price * i.quantity;
-  }, 0);
-  const comboPrice = parseFloat(product.base_price || 0);
-  const hasSummary = items.length > 0 && comboPrice > 0;
+  function itemBadge(item) {
+    if (item.combo_only_item_id) return { label: "combo only", bg: "#f3f0ff", color: "#7048e8" };
+    if (item.variant_name)       return { label: "variant",    bg: "#fff8f0", color: "#e67700" };
+    return null;
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -167,29 +150,10 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
 
         <div className="modal-body" style={{ gap: "20px" }}>
 
-          {/* Summary strip */}
-          {hasSummary && (
-            <div style={{
-              display: "flex", gap: "24px", flexWrap: "wrap",
-              background: "#f8f9fa", border: "1px solid #e9ecef",
-              borderRadius: "6px", padding: "10px 16px", fontSize: "13px",
-            }}>
-              <span>
-                <span style={{ color: "#888" }}>Items total: </span>
-                <strong>Rs. {itemsTotal.toFixed(2)}</strong>
-              </span>
-              <span>
-                <span style={{ color: "#888" }}>Combo price: </span>
-                <strong style={{ color: "#7048e8" }}>Rs. {comboPrice.toFixed(2)}</strong>
-              </span>
-              {itemsTotal > comboPrice && (
-                <span>
-                  <span style={{ color: "#888" }}>Customer saves: </span>
-                  <strong style={{ color: "#2f9e44" }}>
-                    Rs. {(itemsTotal - comboPrice).toFixed(2)}
-                  </strong>
-                </span>
-              )}
+          {/* Combo selling price reminder */}
+          {product.base_price && (
+            <div style={{ fontSize: "13px", color: "#555", background: "#f8f9fa", border: "1px solid #e9ecef", borderRadius: "6px", padding: "8px 14px" }}>
+              Combo selling price: <strong style={{ color: "#7048e8" }}>Rs. {parseFloat(product.base_price).toFixed(2)}</strong>
             </div>
           )}
 
@@ -206,40 +170,40 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td style={{ fontWeight: 500 }}>
-                      {itemDisplayName(item)}
-                      {item.variant_name && (
-                        <span className="badge" style={{
-                          marginLeft: "8px", background: "#fff8f0",
-                          color: "#e67700", fontSize: "11px",
-                        }}>
-                          variant
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <input
-                        className="form-input"
-                        type="number"
-                        min="1"
-                        style={{ padding: "4px 8px", width: "70px" }}
-                        value={item.quantity}
-                        onChange={(e) => handleUpdateQty(item, e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm"
-                        style={{ background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }}
-                        onClick={() => handleRemove(item.id)}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {items.map((item) => {
+                  const badge = itemBadge(item);
+                  return (
+                    <tr key={item.id}>
+                      <td style={{ fontWeight: 500 }}>
+                        {itemDisplayName(item)}
+                        {badge && (
+                          <span className="badge" style={{ marginLeft: "8px", background: badge.bg, color: badge.color, fontSize: "11px" }}>
+                            {badge.label}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <input
+                          className="form-input"
+                          type="number"
+                          min="1"
+                          style={{ padding: "4px 8px", width: "70px" }}
+                          value={item.quantity}
+                          onChange={(e) => handleUpdateQty(item, e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-sm"
+                          style={{ background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }}
+                          onClick={() => handleRemove(item.id)}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={3} style={{ textAlign: "center", color: "#bbb", padding: "20px" }}>
@@ -257,12 +221,12 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
               ADD ITEM TO COMBO
             </p>
             {loadingOptions ? (
-              <p style={{ color: "#999", fontSize: "13px" }}>Loading products...</p>
+              <p style={{ color: "#999", fontSize: "13px" }}>Loading...</p>
             ) : (
               <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", flexWrap: "wrap" }}>
 
-                {/* Category filter — optional */}
-                <div className="form-group" style={{ width: "160px" }}>
+                {/* Category filter — only affects menu products, not combo-only items */}
+                <div className="form-group" style={{ width: "155px" }}>
                   <label className="form-label">Category filter</label>
                   <select
                     className="form-input"
@@ -276,8 +240,8 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                   </select>
                 </div>
 
-                {/* Item selector — simple products + individual variants */}
-                <div className="form-group" style={{ flex: 1, minWidth: "180px" }}>
+                {/* Item selector */}
+                <div className="form-group" style={{ flex: 1, minWidth: "200px" }}>
                   <label className="form-label">Item</label>
                   <select
                     className="form-input"
@@ -285,21 +249,19 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                     onChange={(e) => setSelected(e.target.value)}
                   >
                     <option value="">— Select item —</option>
-                    {regularOptions.length > 0 && (
-                      <optgroup label="Regular Products">
-                        {regularOptions.map((opt) => (
-                          <option key={opt.key} value={opt.key}>
-                            {opt.label}{opt.price > 0 ? `  (Rs. ${opt.price.toFixed(0)})` : ""}
-                          </option>
+
+                    {filteredMenuOptions.length > 0 && (
+                      <optgroup label="Menu Products">
+                        {filteredMenuOptions.map((opt) => (
+                          <option key={opt.key} value={opt.key}>{opt.label}</option>
                         ))}
                       </optgroup>
                     )}
-                    {comboOnlyOptions.length > 0 && (
+
+                    {comboOnlyItems.length > 0 && (
                       <optgroup label="Combo-Only Items">
-                        {comboOnlyOptions.map((opt) => (
-                          <option key={opt.key} value={opt.key}>
-                            {opt.label}{opt.price > 0 ? `  (Rs. ${opt.price.toFixed(0)})` : ""}
-                          </option>
+                        {comboOnlyItems.map((item) => (
+                          <option key={`c:${item.id}`} value={`c:${item.id}`}>{item.name}</option>
                         ))}
                       </optgroup>
                     )}

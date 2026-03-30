@@ -9,7 +9,6 @@ import {
 
 const VALID_TYPES = ["simple", "variant", "combo"];
 
-// Convert a name into a URL-friendly slug: "Classic Burger" → "classic-burger"
 function toSlug(text) {
   return text
     .toLowerCase()
@@ -18,7 +17,6 @@ function toSlug(text) {
     .replace(/^-+|-+$/g, "");
 }
 
-// If the base slug is taken, try slug-2, slug-3, … until one is free.
 async function uniqueSlug(base, excludeId = null) {
   let candidate = base;
   let counter   = 2;
@@ -34,7 +32,7 @@ export function listProducts(filters) {
 }
 
 export async function createProduct(data) {
-  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, is_combo_only, sort_order } = data;
+  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, sort_order } = data;
   let   { slug } = data;
 
   if (!name?.trim())               throw new Error("Product name is required.");
@@ -53,8 +51,7 @@ export async function createProduct(data) {
     throw new Error("Combo selling price must be a valid number.");
   }
 
-  // Auto-generate slug from name if not provided
-  const baseSlug = toSlug(slug?.trim() || name.trim());
+  const baseSlug  = toSlug(slug?.trim() || name.trim());
   const finalSlug = await uniqueSlug(baseSlug);
 
   return repoCreate({
@@ -66,15 +63,14 @@ export async function createProduct(data) {
     type,
     base_price:   (type === "simple" || type === "combo") ? parseFloat(base_price) : null,
     image_url:    image_url.trim(),
-    is_available:  is_available  !== false,
-    is_active:     is_active     !== false,
-    is_combo_only: Boolean(is_combo_only),
-    sort_order:    parseInt(sort_order) || 0,
+    is_available: is_available !== false,
+    is_active:    is_active    !== false,
+    sort_order:   parseInt(sort_order) || 0,
   });
 }
 
 export async function updateProduct(id, data) {
-  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, is_combo_only, sort_order } = data;
+  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, sort_order } = data;
   let   { slug } = data;
 
   if (!name?.trim())               throw new Error("Product name is required.");
@@ -93,7 +89,6 @@ export async function updateProduct(id, data) {
     throw new Error("Combo selling price must be a valid number.");
   }
 
-  // If the slug field was left blank, regenerate from the new name
   const baseSlug  = toSlug(slug?.trim() || name.trim());
   const finalSlug = await uniqueSlug(baseSlug, id);
 
@@ -106,10 +101,9 @@ export async function updateProduct(id, data) {
     type,
     base_price:   (type === "simple" || type === "combo") ? parseFloat(base_price) : null,
     image_url:    image_url.trim(),
-    is_available:  Boolean(is_available),
-    is_active:     Boolean(is_active),
-    is_combo_only: Boolean(is_combo_only),
-    sort_order:    parseInt(sort_order) || 0,
+    is_available: Boolean(is_available),
+    is_active:    Boolean(is_active),
+    sort_order:   parseInt(sort_order) || 0,
   });
 }
 
