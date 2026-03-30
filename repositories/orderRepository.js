@@ -1,0 +1,437 @@
+import { query } from "../lib/db";
+
+/**
+ * Generate the next order number inside a transaction.
+ * Reads the current MAX and increments it.
+ * The UNIQUE constraint on orders.order_number is the final safety net.
+ */
+export async function generateOrderNumber(client) {
+  const res = await client.query(
+    `SELECT COALESCE(
+       MAX(CAST(SUBSTRING(order_number FROM 5) AS INTEGER)), 0
+     ) + 1 AS next
+     FROM orders`
+  );
+  const num = res.rows[0].next;
+  return `ORD-${String(num).padStart(4, "0")}`;
+}
+
+export async function createOrder(client, {
+  orderNumber,
+  type,
+  subtotal,
+  tax,
+  total,
+  notes,
+  tableNumber,
+  tableId,
+  waiterId,
+  customerName,
+  customerPhone,
+  customerAddress,
+  createdBy,
+}) {
+  const res = await client.query(
+    `INSERT INTO orders
+       (order_number, type, subtotal, tax, total, notes,
+        table_number, table_id, waiter_id,
+        customer_name, customer_phone, customer_address, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     RETURNING *`,
+    [
+      orderNumber, type, subtotal, tax, total, notes || null,
+      tableNumber || null, tableId || null, waiterId || null,
+      customerName || null, customerPhone || null, customerAddress || null, createdBy,
+    ]
+  );
+  return res.rows[0];
+}
+
+export async function createOrderItem(client, {
+  orderId,
+  productId,
+  variantId,
+  productName,
+  variantName,
+  unitPrice,
+  quantity,
+  lineTotal,
+  notes,
+}) {
+  const res = await client.query(
+    `INSERT INTO order_items
+       (order_id, product_id, product_variant_id, product_name, variant_name,
+        unit_price, quantity, line_total, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING id`,
+    [
+      orderId,
+      productId      || null,
+      variantId      || null,
+      productName,
+      variantName    || null,
+      unitPrice,
+      quantity,
+      lineTotal,
+      notes          || null,
+    ]
+  );
+  return res.rows[0];
+}
+
+export async function createOrderItemAddon(client, {
+  orderItemId,
+  addonItemId,
+  addonName,
+  price,
+}) {
+  await client.query(
+    `INSERT INTO order_item_addons (order_item_id, addon_item_id, addon_name, price)
+     VALUES ($1, $2, $3, $4)`,
+    [orderItemId, addonItemId || null, addonName, price]
+  );
+}
+
+export async function createPayment(client, {
+  orderId,
+  method,
+  amount,
+  changeDue,
+  reference,
+  paidBy,
+}) {
+  const res = await client.query(
+    `INSERT INTO payments (order_id, method, amount, change_due, reference, paid_by)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [orderId, method, amount, changeDue || 0, reference || null, paidBy]
+  );
+  return res.rows[0];
+}
+
+// ── Read queries ──────────────────────────────────────────────────────────────
+
+/**
+ * List orders with optional filters.
+ *
+ * filters: { ownUserId, dateFilter, paymentStatus, orderType }
+ *   ownUserId    – when set, restricts to orders created_by that user (cashier view)
+ *   dateFilter   – "today" restricts to today's date; anything else = all time
+ *   paymentStatus – "paid" | "refunded" | "" (all)
+ *   orderType    – "dine-in" | "takeaway" | "" (all)
+ */
+export async function listOrders({ ownUserId, dateFilter, paymentStatus, orderType } = {}) {
+  const conditions = [];
+  const params     = [];
+
+  if (ownUserId) {
+    params.push(ownUserId);
+    conditions.push(`o.created_by = $${params.length}`);
+  }
+
+  if (dateFilter === "today") {
+    conditions.push(`DATE(o.created_at) = CURRENT_DATE`);
+  }
+
+  if (paymentStatus === "unpaid") {
+    conditions.push(`p.status IS NULL`);
+  } else if (paymentStatus) {
+    params.push(paymentStatus);
+    conditions.push(`p.status = $${params.length}`);
+  }
+
+  if (orderType) {
+    params.push(orderType);
+    conditions.push(`o.type = $${params.length}`);
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const res = await query(
+    `SELECT
+       o.id,
+       o.order_number,
+       o.type,
+       o.status,
+       o.subtotal,
+       o.tax,
+       o.total,
+       o.table_number,
+       o.table_id,
+       o.waiter_id,
+       o.customer_name,
+       o.customer_phone,
+       o.customer_address,
+       o.notes,
+       o.created_at,
+       u.name           AS cashier_name,
+       w.name           AS waiter_name,
+       t.name           AS table_name,
+       p.method         AS payment_method,
+       p.status         AS payment_status,
+       p.amount         AS payment_amount,
+       p.change_due,
+       COUNT(oi.id)     AS item_count
+     FROM   orders o
+     LEFT   JOIN users       u  ON u.id       = o.created_by
+     LEFT   JOIN users       w  ON w.id       = o.waiter_id
+     LEFT   JOIN tables      t  ON t.id       = o.table_id
+     LEFT   JOIN payments    p  ON p.order_id = o.id
+     LEFT   JOIN order_items oi ON oi.order_id = o.id
+     ${where}
+     GROUP  BY o.id, u.name, w.name, t.name, p.method, p.status, p.amount, p.change_due
+     ORDER  BY o.created_at DESC`,
+    params
+  );
+  return res.rows;
+}
+
+/**
+ * Full order detail: header + items + per-item addons + payment.
+ * Pass ownUserId to enforce cashier-can-only-see-own-orders rule.
+ */
+export async function getOrderWithDetails(id, { ownUserId } = {}) {
+  // 1. Order header + payment
+  const orderParams = [id];
+  let ownerClause   = "";
+  if (ownUserId) {
+    orderParams.push(ownUserId);
+    ownerClause = `AND o.created_by = $2`;
+  }
+
+  const orderRes = await query(
+    `SELECT
+       o.*,
+       u.name  AS cashier_name,
+       w.name  AS waiter_name,
+       t.name  AS table_name,
+       p.method        AS payment_method,
+       p.status        AS payment_status,
+       p.amount        AS payment_amount,
+       p.change_due,
+       p.reference     AS payment_reference,
+       p.paid_at
+     FROM   orders o
+     LEFT   JOIN users    u ON u.id       = o.created_by
+     LEFT   JOIN users    w ON w.id       = o.waiter_id
+     LEFT   JOIN tables   t ON t.id       = o.table_id
+     LEFT   JOIN payments p ON p.order_id = o.id
+     WHERE  o.id = $1 ${ownerClause}`,
+    orderParams
+  );
+
+  const order = orderRes.rows[0];
+  if (!order) return null;
+
+  // 2. Order items
+  const itemsRes = await query(
+    `SELECT id, product_name, variant_name, unit_price, quantity, line_total, notes
+     FROM   order_items
+     WHERE  order_id = $1
+     ORDER  BY id ASC`,
+    [id]
+  );
+  const items   = itemsRes.rows;
+  const itemIds = items.map((i) => i.id);
+
+  // 3. Addons for those items
+  let addonsByItem = {};
+  if (itemIds.length > 0) {
+    const addonsRes = await query(
+      `SELECT order_item_id, addon_name, price
+       FROM   order_item_addons
+       WHERE  order_item_id = ANY($1)
+       ORDER  BY id ASC`,
+      [itemIds]
+    );
+    for (const a of addonsRes.rows) {
+      if (!addonsByItem[a.order_item_id]) addonsByItem[a.order_item_id] = [];
+      addonsByItem[a.order_item_id].push({ name: a.addon_name, price: parseFloat(a.price) });
+    }
+  }
+
+  // 4. Attach addons to items
+  const enrichedItems = items.map((item) => ({
+    ...item,
+    unit_price: parseFloat(item.unit_price),
+    line_total: parseFloat(item.line_total),
+    addons:     addonsByItem[item.id] || [],
+  }));
+
+  return { ...order, items: enrichedItems };
+}
+
+// ── Kitchen queries ────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all active orders for the kitchen board:
+ * status IN ('pending', 'preparing', 'ready') ordered oldest-first (FIFO).
+ * Uses 3 flat queries to avoid N+1.
+ */
+export async function getKitchenOrders() {
+  // 1. Active order headers (include waiter name via LEFT JOIN)
+  const ordersRes = await query(
+    `SELECT o.id, o.order_number, o.type, o.status, o.notes,
+            o.table_number, o.customer_name, o.created_at,
+            u.name AS waiter_name
+     FROM   orders o
+     LEFT   JOIN users u ON u.id = o.waiter_id
+     WHERE  o.status IN ('pending', 'preparing', 'ready')
+     ORDER  BY o.created_at ASC`
+  );
+  const orders   = ordersRes.rows;
+  const orderIds = orders.map((o) => o.id);
+
+  if (orderIds.length === 0) return [];
+
+  // 2. Items for all those orders
+  const itemsRes = await query(
+    `SELECT id, order_id, product_name, variant_name, quantity, notes
+     FROM   order_items
+     WHERE  order_id = ANY($1)
+     ORDER  BY order_id ASC, id ASC`,
+    [orderIds]
+  );
+  const allItems   = itemsRes.rows;
+  const itemIds    = allItems.map((i) => i.id);
+
+  // 3. Addons for all those items
+  let addonsByItem = {};
+  if (itemIds.length > 0) {
+    const addonsRes = await query(
+      `SELECT order_item_id, addon_name
+       FROM   order_item_addons
+       WHERE  order_item_id = ANY($1)
+       ORDER  BY id ASC`,
+      [itemIds]
+    );
+    for (const a of addonsRes.rows) {
+      if (!addonsByItem[a.order_item_id]) addonsByItem[a.order_item_id] = [];
+      addonsByItem[a.order_item_id].push(a.addon_name);
+    }
+  }
+
+  // Group items by order_id, attach addons
+  const itemsByOrder = {};
+  for (const item of allItems) {
+    if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+    itemsByOrder[item.order_id].push({
+      id:           item.id,
+      product_name: item.product_name,
+      variant_name: item.variant_name || null,
+      quantity:     item.quantity,
+      notes:        item.notes || null,
+      addons:       addonsByItem[item.id] || [],
+    });
+  }
+
+  return orders.map((o) => ({
+    ...o,
+    items: itemsByOrder[o.id] || [],
+  }));
+}
+
+/**
+ * Advance an order's kitchen status.
+ * Only allows forward transitions:
+ *   pending → preparing → ready → completed
+ */
+const VALID_TRANSITIONS = {
+  pending:   "preparing",
+  preparing: "ready",
+  ready:     "completed",
+};
+
+export async function advanceOrderStatus(id) {
+  // Read current status
+  const cur = await query(`SELECT status FROM orders WHERE id = $1`, [id]);
+  if (!cur.rows[0]) {
+    const e = new Error("Order not found.");
+    e.status = 404;
+    throw e;
+  }
+
+  const current = cur.rows[0].status;
+  const next    = VALID_TRANSITIONS[current];
+  if (!next) {
+    const e = new Error(`Cannot advance order from status "${current}".`);
+    e.status = 400;
+    throw e;
+  }
+
+  const res = await query(
+    `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, status`,
+    [next, id]
+  );
+  return res.rows[0];
+}
+
+// ── Open-bill queries ─────────────────────────────────────────────────────────
+
+/**
+ * Find the most recent open (unpaid, not cancelled) dine-in order for a table.
+ * Used by POS to detect whether a table already has a running bill.
+ */
+export async function getOpenOrderByTable(tableId) {
+  const res = await query(
+    `SELECT o.id, o.order_number, o.subtotal, o.total, o.status, o.table_id, o.table_number
+     FROM   orders  o
+     LEFT   JOIN payments p ON p.order_id = o.id
+     WHERE  o.type     = 'dine-in'
+       AND  o.table_id = $1
+       AND  p.id       IS NULL
+       AND  o.status  != 'cancelled'
+     ORDER  BY o.created_at DESC
+     LIMIT  1`,
+    [tableId]
+  );
+  return res.rows[0] || null;
+}
+
+/**
+ * Add the cost of newly appended items to an order's subtotal/total,
+ * and reset status to 'pending' so the kitchen sees the updated order.
+ * Must be called inside a transaction (client param).
+ */
+export async function updateOrderTotals(client, { orderId, addSubtotal }) {
+  const res = await client.query(
+    `UPDATE orders
+     SET subtotal   = subtotal + $1,
+         total      = total    + $1,
+         status     = 'pending',
+         updated_at = NOW()
+     WHERE id = $2
+     RETURNING id, order_number, subtotal, total, status`,
+    [addSubtotal, orderId]
+  );
+  return res.rows[0];
+}
+
+/**
+ * Directly mark an order as completed from the kitchen.
+ * Works from any active status (pending / preparing / ready).
+ */
+export async function completeOrder(id) {
+  const cur = await query(`SELECT status FROM orders WHERE id = $1`, [id]);
+  if (!cur.rows[0]) {
+    const e = new Error("Order not found.");
+    e.status = 404;
+    throw e;
+  }
+  const current = cur.rows[0].status;
+  if (current === "completed") {
+    const e = new Error("Order is already completed.");
+    e.status = 400;
+    throw e;
+  }
+  if (current === "cancelled") {
+    const e = new Error("Cannot complete a cancelled order.");
+    e.status = 400;
+    throw e;
+  }
+  const res = await query(
+    `UPDATE orders SET status = 'completed', updated_at = NOW() WHERE id = $1 RETURNING id, status`,
+    [id]
+  );
+  return res.rows[0];
+}

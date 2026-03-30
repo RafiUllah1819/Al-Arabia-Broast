@@ -1,0 +1,150 @@
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "../contexts/AuthContext";
+
+export default function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
+
+  const { setUser } = useAuth();
+  const router      = useRouter();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Login failed.");
+        return;
+      }
+
+      // Update context with the logged-in user, then redirect
+      setUser(data.user);
+      router.replace(data.redirectTo);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h1 style={styles.logo}>🍽 RestaurantOS</h1>
+        <p style={styles.subtitle}>Sign in to your account</p>
+
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.field}>
+            <label style={styles.label}>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              style={styles.input}
+              placeholder="Enter your username"
+              autoFocus
+              required
+            />
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          {error && <p style={styles.error}>{error}</p>}
+
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  page: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100vh",
+    background: "#f5f5f5",
+  },
+  card: {
+    background: "#fff",
+    padding: "40px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+    width: "360px",
+  },
+  logo: {
+    fontSize: "20px",
+    marginBottom: "6px",
+    textAlign: "center",
+  },
+  subtitle: {
+    color: "#999",
+    fontSize: "13px",
+    textAlign: "center",
+    marginBottom: "28px",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+  },
+  field: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+  },
+  label: {
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "#555",
+  },
+  input: {
+    padding: "10px 12px",
+    border: "1px solid #ddd",
+    borderRadius: "5px",
+    fontSize: "14px",
+    outline: "none",
+  },
+  error: {
+    color: "#e94560",
+    fontSize: "13px",
+    margin: 0,
+  },
+  button: {
+    padding: "11px",
+    background: "#e94560",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    marginTop: "4px",
+  },
+};

@@ -1,0 +1,464 @@
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmtTime(dateStr) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleTimeString("en-US", {
+    hour: "numeric", minute: "2-digit", hour12: true,
+  });
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+const TYPE_STYLE = {
+  "dine-in":  { background: "#f0f4ff", color: "#3b5bdb" },
+  "takeaway": { background: "#fff8f0", color: "#e67700" },
+  "delivery": { background: "#f3fff3", color: "#2f9e44" },
+};
+const TYPE_LABEL = { "dine-in": "Dine In", "takeaway": "Takeaway", "delivery": "Delivery" };
+
+const STATUS_STYLE = {
+  pending:   { background: "#fff9db", color: "#e67700" },
+  preparing: { background: "#e8f4fd", color: "#1971c2" },
+  ready:     { background: "#f3f0ff", color: "#7048e8" },
+  completed: { background: "#f0fff4", color: "#2f9e44" },
+  cancelled: { background: "#f5f5f5", color: "#aaa"    },
+};
+
+const PAY_STYLE = {
+  paid:     { background: "#f0fff4", color: "#2f9e44" },
+  refunded: { background: "#fff3f3", color: "#e03131" },
+};
+
+// ── Order Detail Modal ────────────────────────────────────────────────────────
+
+function OrderDetailModal({ orderId, onClose }) {
+  const [order,   setOrder]   = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/orders/detail?id=${orderId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) { setError(data.error); return; }
+        setOrder(data.order);
+      })
+      .catch(() => setError("Failed to load order."))
+      .finally(() => setLoading(false));
+  }, [orderId]);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal modal-lg"
+        style={{ width: "560px", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3>
+            {order ? order.order_number : "Order Details"}
+            {order && (
+              <span
+                className="badge"
+                style={{ ...STATUS_STYLE[order.status], marginLeft: "10px", fontSize: "11px" }}
+              >
+                {order.status}
+              </span>
+            )}
+          </h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="modal-body" style={{ overflowY: "auto", flex: 1 }}>
+          {loading && <p style={{ color: "#999" }}>Loading...</p>}
+          {error   && <p className="form-error">{error}</p>}
+
+          {order && (
+            <>
+              {/* Meta */}
+              <div className="order-meta-grid">
+                <div className="order-meta-item">
+                  <span className="order-meta-label">Date</span>
+                  <span className="order-meta-value">{fmtDate(order.created_at)}</span>
+                </div>
+                <div className="order-meta-item">
+                  <span className="order-meta-label">Time</span>
+                  <span className="order-meta-value">{fmtTime(order.created_at)}</span>
+                </div>
+                <div className="order-meta-item">
+                  <span className="order-meta-label">Type</span>
+                  <span className="badge" style={TYPE_STYLE[order.type]}>
+                    {TYPE_LABEL[order.type] || order.type}
+                  </span>
+                </div>
+                <div className="order-meta-item">
+                  <span className="order-meta-label">Cashier</span>
+                  <span className="order-meta-value">{order.cashier_name || "—"}</span>
+                </div>
+                {(order.table_name || order.table_number) && (
+                  <div className="order-meta-item">
+                    <span className="order-meta-label">Table</span>
+                    <span className="order-meta-value">{order.table_name || order.table_number}</span>
+                  </div>
+                )}
+                {order.waiter_name && (
+                  <div className="order-meta-item">
+                    <span className="order-meta-label">Waiter</span>
+                    <span className="order-meta-value">{order.waiter_name}</span>
+                  </div>
+                )}
+                {order.customer_name && (
+                  <div className="order-meta-item">
+                    <span className="order-meta-label">Customer</span>
+                    <span className="order-meta-value">{order.customer_name}</span>
+                  </div>
+                )}
+                {order.customer_phone && (
+                  <div className="order-meta-item">
+                    <span className="order-meta-label">Phone</span>
+                    <span className="order-meta-value">{order.customer_phone}</span>
+                  </div>
+                )}
+                {order.customer_address && (
+                  <div className="order-meta-item" style={{ gridColumn: "1 / -1" }}>
+                    <span className="order-meta-label">Delivery Address</span>
+                    <span className="order-meta-value">{order.customer_address}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Items */}
+              <div>
+                <p className="order-section-label">Items</p>
+                <table className="data-table" style={{ marginTop: "6px" }}>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th style={{ width: "50px", textAlign: "center" }}>Qty</th>
+                      <th style={{ width: "74px", textAlign: "right" }}>Unit</th>
+                      <th style={{ width: "74px", textAlign: "right" }}>Line</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {order.items.map((item, idx) => {
+                      const addonTotal = item.addons.reduce((s, a) => s + a.price, 0);
+                      return (
+                        <>
+                          <tr key={`item-${idx}`}>
+                            <td style={{ fontWeight: 500 }}>
+                              {item.product_name}
+                              {item.variant_name && (
+                                <span style={{ color: "#888", fontWeight: 400 }}>
+                                  {" "}({item.variant_name})
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: "center", color: "#555" }}>{item.quantity}</td>
+                            <td style={{ textAlign: "right" }}>Rs. {item.unit_price.toFixed(2)}</td>
+                            <td style={{ textAlign: "right", fontWeight: 500 }}>
+                              Rs. {(item.line_total + addonTotal * item.quantity).toFixed(2)}
+                            </td>
+                          </tr>
+                          {item.addons.map((a, ai) => (
+                            <tr key={`addon-${idx}-${ai}`} style={{ background: "#fafafa" }}>
+                              <td style={{ paddingLeft: "28px", fontSize: "12px", color: "#888" }}>
+                                + {a.name}
+                              </td>
+                              <td style={{ textAlign: "center", fontSize: "12px", color: "#aaa" }}>
+                                {item.quantity}
+                              </td>
+                              <td style={{ textAlign: "right", fontSize: "12px", color: "#888" }}>
+                                +Rs. {a.price.toFixed(2)}
+                              </td>
+                              <td style={{ textAlign: "right", fontSize: "12px", color: "#888" }}>
+                                +Rs. {(a.price * item.quantity).toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totals */}
+              <div className="order-totals-box">
+                <div className="order-totals-row">
+                  <span>Subtotal</span>
+                  <span>Rs. {parseFloat(order.subtotal).toFixed(2)}</span>
+                </div>
+                <div className="order-totals-row grand">
+                  <span>Total</span>
+                  <span>Rs. {parseFloat(order.total).toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Payment */}
+              <div>
+                <p className="order-section-label">Payment</p>
+                <div className="order-payment-box">
+                  <div className="order-payment-row">
+                    <span>Method</span>
+                    <span style={{ textTransform: "capitalize", fontWeight: 500 }}>
+                      {order.payment_method || "—"}
+                    </span>
+                  </div>
+                  <div className="order-payment-row">
+                    <span>Amount Paid</span>
+                    <span>Rs. {parseFloat(order.payment_amount || 0).toFixed(2)}</span>
+                  </div>
+                  {order.payment_method === "cash" && parseFloat(order.change_due || 0) > 0 && (
+                    <div className="order-payment-row">
+                      <span>Change Given</span>
+                      <span>Rs. {parseFloat(order.change_due).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {order.payment_reference && (
+                    <div className="order-payment-row">
+                      <span>Reference</span>
+                      <span style={{ color: "#888", fontSize: "12px" }}>
+                        {order.payment_reference}
+                      </span>
+                    </div>
+                  )}
+                  <div className="order-payment-row">
+                    <span>Status</span>
+                    {order.payment_status ? (
+                      <span className="badge" style={PAY_STYLE[order.payment_status]}>
+                        {order.payment_status}
+                      </span>
+                    ) : (
+                      <span style={{ color: "#aaa", fontSize: "12px" }}>No payment</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {order.notes && (
+                <div>
+                  <p className="order-section-label">Notes</p>
+                  <p style={{ fontSize: "13px", color: "#555", background: "#fafafa", padding: "10px 12px", borderRadius: "6px", border: "1px solid #eee" }}>
+                    {order.notes}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+
+export default function OrdersPage() {
+  const { user }  = useAuth();
+  const isAdmin   = user?.role === "admin" || user?.role === "manager";
+
+  const [orders,     setOrders]     = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+
+  // Filters
+  const [dateFilter, setDateFilter] = useState("today");
+  const [payFilter,  setPayFilter]  = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+
+  const fetchOrders = useCallback(() => {
+    setLoading(true);
+    setError("");
+    const params = new URLSearchParams();
+    if (dateFilter) params.set("date",           dateFilter);
+    if (payFilter)  params.set("payment_status", payFilter);
+    if (typeFilter) params.set("order_type",     typeFilter);
+
+    fetch(`/api/orders?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) { setError(data.error); return; }
+        setOrders(data.orders || []);
+      })
+      .catch(() => setError("Failed to load orders."))
+      .finally(() => setLoading(false));
+  }, [dateFilter, payFilter, typeFilter]);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  const shownTotal = orders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+
+  return (
+    <div>
+      <div className="page-header">
+        <h1 className="page-title">
+          Orders
+          {!isAdmin && (
+            <span style={{ fontSize: "13px", fontWeight: 400, color: "#888", marginLeft: "10px" }}>
+              (your orders only)
+            </span>
+          )}
+        </h1>
+        <button className="btn btn-secondary" onClick={fetchOrders}>Refresh</button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="orders-filter-bar">
+        <div className="orders-filter-group">
+          <button
+            className={`tab-btn${dateFilter === "today" ? " active" : ""}`}
+            style={{ marginBottom: 0 }}
+            onClick={() => setDateFilter("today")}
+          >
+            Today
+          </button>
+          <button
+            className={`tab-btn${dateFilter === "" ? " active" : ""}`}
+            style={{ marginBottom: 0 }}
+            onClick={() => setDateFilter("")}
+          >
+            All Time
+          </button>
+        </div>
+
+        <div className="orders-filter-group">
+          <select
+            className="form-input orders-filter-select"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+          >
+            <option value="">All Types</option>
+            <option value="dine-in">Dine In</option>
+            <option value="takeaway">Takeaway</option>
+            <option value="delivery">Delivery</option>
+          </select>
+
+          <select
+            className="form-input orders-filter-select"
+            value={payFilter}
+            onChange={(e) => setPayFilter(e.target.value)}
+          >
+            <option value="">All Payments</option>
+            <option value="paid">Paid</option>
+            <option value="refunded">Refunded</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Summary */}
+      {!loading && !error && (
+        <p className="orders-summary">
+          <strong>{orders.length}</strong> order{orders.length !== 1 ? "s" : ""}
+          <span style={{ color: "#ddd", margin: "0 8px" }}>|</span>
+          Total: <strong>Rs. {shownTotal.toFixed(2)}</strong>
+        </p>
+      )}
+
+      {error && <p className="form-error" style={{ marginBottom: "12px" }}>{error}</p>}
+
+      {/* Table */}
+      <div className="table-container">
+        {loading ? (
+          <p style={{ padding: "24px", color: "#999" }}>Loading...</p>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Date / Time</th>
+                <th>Type</th>
+                {isAdmin && <th>Cashier</th>}
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => (
+                <tr key={o.id}>
+                  <td style={{ fontWeight: 600 }}>{o.order_number}</td>
+                  <td>
+                    <div style={{ fontSize: "12px", color: "#555" }}>{fmtDate(o.created_at)}</div>
+                    <div style={{ fontSize: "11px", color: "#aaa" }}>{fmtTime(o.created_at)}</div>
+                  </td>
+                  <td>
+                    <span className="badge" style={TYPE_STYLE[o.type] || {}}>
+                      {TYPE_LABEL[o.type] || o.type}
+                    </span>
+                  </td>
+                  {isAdmin && (
+                    <td style={{ color: "#555", fontSize: "13px" }}>{o.cashier_name || "—"}</td>
+                  )}
+                  <td style={{ color: "#888" }}>
+                    {o.item_count} item{o.item_count !== 1 ? "s" : ""}
+                  </td>
+                  <td style={{ fontWeight: 600 }}>Rs. {parseFloat(o.total).toFixed(2)}</td>
+                  <td>
+                    {o.payment_status ? (
+                      <>
+                        <span className="badge" style={PAY_STYLE[o.payment_status]}>
+                          {o.payment_status}
+                        </span>
+                        <div style={{ fontSize: "11px", color: "#aaa", marginTop: "2px", textTransform: "capitalize" }}>
+                          {o.payment_method}
+                        </div>
+                      </>
+                    ) : (
+                      <span style={{ color: "#aaa", fontSize: "12px" }}>—</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className="badge" style={STATUS_STYLE[o.status]}>
+                      {o.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => setSelectedId(o.id)}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {orders.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={isAdmin ? 9 : 8}
+                    style={{ textAlign: "center", color: "#bbb", padding: "40px" }}
+                  >
+                    No orders found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {selectedId && (
+        <OrderDetailModal
+          orderId={selectedId}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+    </div>
+  );
+}
