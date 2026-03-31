@@ -584,7 +584,10 @@ button {
   min-width: 420px;
   max-width: 95vw;
   box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  max-height: 90%;
+  overflow-x: scroll;
 }
+
 
 .modal-header {
   display: flex;
