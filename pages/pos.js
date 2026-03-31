@@ -510,14 +510,18 @@ function ProductGrid({ products, onSelect }) {
     <div className="pos-product-grid">
       {products.map((p) => (
         <button key={p.id} className="pos-product-card" onClick={() => onSelect(p)}>
-          {p.image_url && (
-            <img
-              src={p.image_url}
-              alt={p.name}
-              className="pos-product-img"
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
-          )}
+          <div className="pos-product-img-wrap">
+            {p.image_url ? (
+              <img
+                src={p.image_url}
+                alt={p.name}
+                className="pos-product-img"
+                onError={(e) => { e.target.style.display = "none"; }}
+              />
+            ) : (
+              <div className="pos-product-img-placeholder">POS</div>
+            )}
+          </div>
           <div className="pos-product-name">{p.name}</div>
           {p.description && (
             <div className="pos-product-desc">{p.description}</div>
