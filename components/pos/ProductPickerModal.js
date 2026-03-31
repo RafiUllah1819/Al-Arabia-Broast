@@ -94,20 +94,31 @@ export default function ProductPickerModal({ product, onConfirm, onClose }) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const canConfirm = !isVariant || selectedVariant;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-lg pos-picker-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal pos-picker-modal" onClick={(e) => e.stopPropagation()}>
+
         <div className="modal-header">
-          <h3>{product.name}</h3>
+          <div>
+            <h3>{product.name}</h3>
+            {product.description && (
+              <p className="pos-picker-desc">{product.description}</p>
+            )}
+          </div>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
-        <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto", gap: "20px" }}>
+        <div className="modal-body">
 
           {/* Variant selection */}
           {isVariant && (
-            <div>
-              <p className="pos-section-label">Choose Variant *</p>
+            <div className="pos-section-block">
+              <p className="pos-section-label">
+                Choose Variant
+                <span className="pos-section-hint">Required</span>
+              </p>
               <div className="pos-option-grid">
                 {product.variants.map((v) => (
                   <button
@@ -116,7 +127,7 @@ export default function ProductPickerModal({ product, onConfirm, onClose }) {
                     onClick={() => setSelectedVariant(v)}
                   >
                     <span className="pos-option-name">{v.name}</span>
-                    <span className="pos-option-price">+Rs. {v.price.toFixed(2)}</span>
+                    <span className="pos-option-price">Rs. {v.price.toFixed(2)}</span>
                   </button>
                 ))}
               </div>
@@ -125,12 +136,12 @@ export default function ProductPickerModal({ product, onConfirm, onClose }) {
 
           {/* Addon groups */}
           {(product.addon_groups || []).map((group) => (
-            <div key={group.id}>
+            <div key={group.id} className="pos-section-block">
               <p className="pos-section-label">
                 {group.name}
                 <span className="pos-section-hint">
-                  {group.min_select > 0 ? ` · Min ${group.min_select}` : " · Optional"}
-                  {group.max_select === 0 ? "" : ` · Max ${group.max_select}`}
+                  {group.min_select > 0 ? `Min ${group.min_select}` : "Optional"}
+                  {group.max_select > 0 ? ` · Max ${group.max_select}` : ""}
                 </span>
               </p>
               <div className="pos-option-grid">
@@ -155,30 +166,47 @@ export default function ProductPickerModal({ product, onConfirm, onClose }) {
 
           {/* No customisation needed */}
           {!isVariant && !hasAddons && (
-            <p style={{ color: "#888", fontSize: "13px" }}>No customisation options for this item.</p>
+            <p style={{ color: "#9CA3AF", fontSize: "13px" }}>No customisation options for this item.</p>
           )}
 
           {error && <p className="form-error">{error}</p>}
         </div>
 
-        <div className="modal-footer" style={{ justifyContent: "space-between" }}>
+        <div className="pos-picker-footer">
           {/* Qty control */}
-          <div className="pos-qty-row">
-            <button className="pos-qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-            <span className="pos-qty-value">{qty}</span>
-            <button className="pos-qty-btn" onClick={() => setQty((q) => q + 1)}>+</button>
+          <div>
+            <p className="pos-qty-label">Quantity</p>
+            <div className="pos-qty-row">
+              <button className="pos-qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
+              <span className="pos-qty-value">{qty}</span>
+              <button className="pos-qty-btn" onClick={() => setQty((q) => q + 1)}>+</button>
+            </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <span style={{ fontSize: "15px", fontWeight: 700, color: "#333" }}>
-              Rs. {totalPrice.toFixed(2)}
-            </span>
+          <div className="pos-picker-actions">
+            {/* Total */}
+            <div className="pos-picker-total">
+              {canConfirm ? (
+                <>
+                  <p className="pos-picker-total-label">Total</p>
+                  <p className="pos-picker-total-value">Rs. {totalPrice.toFixed(2)}</p>
+                </>
+              ) : (
+                <p className="pos-picker-total-hint">Select a variant</p>
+              )}
+            </div>
+
             <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleConfirm}>
+            <button
+              className="btn btn-primary"
+              onClick={handleConfirm}
+              disabled={!canConfirm}
+            >
               Add to Order
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
