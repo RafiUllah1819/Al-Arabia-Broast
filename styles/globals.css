@@ -695,6 +695,7 @@ button {
   flex-shrink: 0;
   scrollbar-width: none;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .pos-cat-tabs::-webkit-scrollbar {
