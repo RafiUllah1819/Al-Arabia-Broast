@@ -29,6 +29,7 @@ export default async function handler(req, res) {
          o.order_number,
          o.total        AS bill_total,
          o.status       AS order_status,
+         o.created_at   AS order_opened_at,
          u.name         AS waiter_name
        FROM tables t
        LEFT JOIN orders o ON (

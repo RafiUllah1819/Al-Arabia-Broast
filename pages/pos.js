@@ -2,6 +2,18 @@ import { useState, useEffect, useMemo } from "react";
 import ProductPickerModal from "../components/pos/ProductPickerModal";
 import PaymentModal       from "../components/pos/PaymentModal";
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmtAgo(dateStr) {
+  if (!dateStr) return null;
+  const mins = Math.round((Date.now() - new Date(dateStr)) / 60000);
+  if (mins < 1)  return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return rem > 0 ? `${hrs}h ${rem}m ago` : `${hrs}h ago`;
+}
+
 // ── Cart helpers ───────────────────────────────────────────────────────────────
 
 let nextCartId = 1;
@@ -80,12 +92,20 @@ function TablePickerModal({ tables, onSelect, onClose }) {
                 {hasOpenBill ? (
                   <>
                     <span className="tbl-card-bill">
-                      Rs. {parseFloat(t.bill_total).toFixed(2)}
+                      Rs. {parseFloat(t.bill_total || 0).toFixed(2)}
                     </span>
-                    {t.waiter_name && (
-                      <span className="tbl-card-waiter">{t.waiter_name}</span>
+                    <div className="tbl-card-bill-meta">
+                      {t.order_number && (
+                        <span className="tbl-card-order-num">#{t.order_number}</span>
+                      )}
+                      {t.waiter_name && (
+                        <span className="tbl-card-waiter">{t.waiter_name}</span>
+                      )}
+                    </div>
+                    {fmtAgo(t.order_opened_at) && (
+                      <span className="tbl-card-time">{fmtAgo(t.order_opened_at)}</span>
                     )}
-                    <span className="tbl-card-badge tbl-badge-occupied">Open Bill</span>
+                    <span className="tbl-card-badge tbl-badge-resume">Tap to Resume</span>
                   </>
                 ) : (
                   <span className={`tbl-card-badge tbl-badge-${cardCls}`}>

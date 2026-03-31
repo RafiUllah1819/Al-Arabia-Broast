@@ -2812,6 +2812,181 @@ button {
 .tbl-badge-available { background: #DCFCE7; color: #166534; }
 .tbl-badge-occupied  { background: #FEF3C7; color: #92400E; }
 .tbl-badge-reserved  { background: #DBEAFE; color: #1E40AF; }
+.tbl-badge-resume    { background: #C2410C; color: #fff; font-weight: 700; }
+
+/* Extra info lines on occupied POS cards */
+.tbl-card-bill-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1px;
+}
+
+.tbl-card-order-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #78350F;
+}
+
+.tbl-card-time {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin-top: 1px;
+}
+
+/* ── Tables page: summary bar ──────────────────────────────────────────────── */
+.tables-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.tables-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 20px;
+  background: #fff;
+  border: 2px solid;
+  border-radius: 10px;
+  min-width: 90px;
+}
+
+.tables-summary-count {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tables-summary-label {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-weight: 500;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* ── Tables page: card grid ────────────────────────────────────────────────── */
+.tables-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.tables-card {
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.15s, transform 0.1s;
+}
+
+.tables-card:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.tables-card-available  { background: #F0FDF4; border-color: #BBF7D0; }
+.tables-card-occupied   { background: #FFFBEB; border-color: #FDE68A; }
+.tables-card-reserved   { background: #EFF6FF; border-color: #BFDBFE; }
+.tables-card-open-bill  { background: #FFF7ED; border-color: #FED7AA; }
+
+.tables-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tables-card-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.tables-card-seats {
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 3px;
+}
+
+.tables-card-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tcb-available { background: #DCFCE7; color: #166534; }
+.tcb-occupied  { background: #FEF3C7; color: #92400E; }
+.tcb-reserved  { background: #DBEAFE; color: #1E40AF; }
+.tcb-open      { background: #FED7AA; color: #C2410C; }
+
+/* Open bill detail box */
+.tables-card-bill-info {
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 8px;
+  padding: 10px 13px;
+}
+
+.tables-card-amount {
+  font-size: 22px;
+  font-weight: 800;
+  color: #C2410C;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.tables-card-bill-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+}
+
+.tables-card-order-num {
+  font-weight: 700;
+  color: #78350F;
+}
+
+.tables-card-waiter {
+  color: #92400E;
+}
+
+.tables-card-time {
+  color: #9CA3AF;
+}
+
+/* Card admin actions */
+.tables-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.tables-card-status-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tables-card-btn-row {
+  display: flex;
+  gap: 6px;
+}
 
 /* ── Waiter picker modal ───────────────────────────────────────────────────── */
 .waiter-picker-modal {

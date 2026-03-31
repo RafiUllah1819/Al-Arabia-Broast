@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 
-const STATUS_STYLE = {
-  available: { background: "#DCFCE7", color: "#166534", label: "Available" },
-  occupied:  { background: "#FEF3C7", color: "#92400E", label: "Occupied"  },
-  reserved:  { background: "#EFF6FF", color: "#3B82F6", label: "Reserved"  },
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function fmtAgo(dateStr) {
+  if (!dateStr) return null;
+  const mins = Math.round((Date.now() - new Date(dateStr)) / 60000);
+  if (mins < 1)  return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return rem > 0 ? `${hrs}h ${rem}m ago` : `${hrs}h ago`;
+}
+
+const STATUS_META = {
+  available: { label: "Available", cardCls: "tables-card-available", badgeCls: "tcb-available", activeColor: "#22C55E" },
+  occupied:  { label: "Occupied",  cardCls: "tables-card-occupied",  badgeCls: "tcb-occupied",  activeColor: "#F59E0B" },
+  reserved:  { label: "Reserved",  cardCls: "tables-card-reserved",  badgeCls: "tcb-reserved",  activeColor: "#3B82F6" },
 };
 
 // ── Table Form Modal ───────────────────────────────────────────────────────────
@@ -40,10 +52,8 @@ function TableFormModal({ table, onClose, onSaved }) {
     e.preventDefault();
     setError("");
     setSaving(true);
-
     const url    = isEditing ? `/api/tables/${table.id}` : "/api/tables";
     const method = isEditing ? "PUT" : "POST";
-
     try {
       const res  = await fetch(url, {
         method,
@@ -123,6 +133,92 @@ function TableFormModal({ table, onClose, onSaved }) {
   );
 }
 
+// ── Table Card ─────────────────────────────────────────────────────────────────
+
+function TableCard({ t, isAdmin, onEdit, onStatusChange, onToggleActive }) {
+  const hasOpenBill = !!t.order_id;
+  const meta = STATUS_META[t.status] || STATUS_META.available;
+  const ago  = fmtAgo(t.order_opened_at);
+
+  return (
+    <div className={`tables-card ${hasOpenBill ? "tables-card-open-bill" : meta.cardCls}`}>
+
+      {/* Header row: name + badge */}
+      <div className="tables-card-top">
+        <div>
+          <div className="tables-card-name">{t.name}</div>
+          <div className="tables-card-seats">{t.capacity} seats</div>
+        </div>
+        <span className={`tables-card-badge ${hasOpenBill ? "tcb-open" : meta.badgeCls}`}>
+          {hasOpenBill ? "Open Bill" : meta.label}
+        </span>
+      </div>
+
+      {/* Open bill details */}
+      {hasOpenBill && (
+        <div className="tables-card-bill-info">
+          <div className="tables-card-amount">
+            Rs. {parseFloat(t.bill_total || 0).toFixed(2)}
+          </div>
+          <div className="tables-card-bill-meta">
+            {t.order_number && (
+              <span className="tables-card-order-num">#{t.order_number}</span>
+            )}
+            {t.waiter_name && (
+              <span className="tables-card-waiter">{t.waiter_name}</span>
+            )}
+            {ago && (
+              <span className="tables-card-time">{ago}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin actions */}
+      {isAdmin && (
+        <div className="tables-card-actions">
+          {!hasOpenBill && (
+            <div className="tables-card-status-btns">
+              {["available", "occupied", "reserved"].map((s) => (
+                <button
+                  key={s}
+                  className="btn btn-sm"
+                  style={{
+                    background: t.status === s ? STATUS_META[s].activeColor : "#F3F4F6",
+                    color:      t.status === s ? "#fff" : "#6B7280",
+                    border:     "none",
+                    fontSize:   "11px",
+                  }}
+                  onClick={() => onStatusChange(t, s)}
+                  disabled={t.status === s}
+                >
+                  {STATUS_META[s].label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="tables-card-btn-row">
+            <button className="btn btn-sm btn-secondary" onClick={onEdit}>
+              Edit
+            </button>
+            <button
+              className="btn btn-sm"
+              style={{
+                background: t.is_active ? "#FEF2F2" : "#DCFCE7",
+                color:      t.is_active ? "#EF4444" : "#166534",
+                border:     "none",
+              }}
+              onClick={() => onToggleActive(t)}
+            >
+              {t.is_active ? "Deactivate" : "Activate"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function TablesPage() {
@@ -135,14 +231,20 @@ export default function TablesPage() {
   const [modalOpen,   setModalOpen]   = useState(false);
   const [editing,     setEditing]     = useState(null);
 
-  useEffect(() => { fetchTables(); }, []);
+  useEffect(() => { loadAll(); }, []);
 
-  async function fetchTables() {
+  async function loadAll() {
     setLoading(true);
     try {
-      const res  = await fetch("/api/tables");
-      const data = await res.json();
-      setTables(data.tables || []);
+      const [tabRes, liveRes] = await Promise.all([
+        fetch("/api/tables").then((r) => r.json()),
+        fetch("/api/pos/tables-with-bills").then((r) => r.json()),
+      ]);
+      const all     = tabRes.tables  || [];
+      const liveMap = {};
+      for (const t of (liveRes.tables || [])) liveMap[t.id] = t;
+      // Merge live bill data onto every table record
+      setTables(all.map((t) => ({ ...t, ...liveMap[t.id] })));
     } finally {
       setLoading(false);
     }
@@ -150,7 +252,7 @@ export default function TablesPage() {
 
   function handleSaved(saved, wasEditing) {
     if (wasEditing) {
-      setTables((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+      setTables((prev) => prev.map((t) => (t.id === saved.id ? { ...t, ...saved } : t)));
     } else {
       setTables((prev) => [...prev, saved]);
     }
@@ -193,6 +295,10 @@ export default function TablesPage() {
   const activeTables   = tables.filter((t) =>  t.is_active);
   const inactiveTables = tables.filter((t) => !t.is_active);
 
+  const openBillCount  = activeTables.filter((t) =>  t.order_id).length;
+  const availableCount = activeTables.filter((t) => !t.order_id && t.status === "available").length;
+  const reservedCount  = activeTables.filter((t) => t.status === "reserved").length;
+
   return (
     <div>
       <div className="page-header">
@@ -209,103 +315,96 @@ export default function TablesPage() {
 
       {actionError && <p className="form-error" style={{ marginBottom: "12px" }}>{actionError}</p>}
 
-      {/* Summary badges */}
+      {/* Summary bar */}
       {!loading && (
         <div className="tables-summary">
-          {Object.entries(STATUS_STYLE).map(([s, st]) => {
-            const count = activeTables.filter((t) => t.status === s).length;
-            return (
-              <div key={s} className="tables-summary-item" style={{ borderColor: st.color }}>
-                <span className="tables-summary-count" style={{ color: st.color }}>{count}</span>
-                <span className="tables-summary-label">{st.label}</span>
-              </div>
-            );
-          })}
+          <div className="tables-summary-item" style={{ borderColor: "#22C55E" }}>
+            <span className="tables-summary-count" style={{ color: "#22C55E" }}>{availableCount}</span>
+            <span className="tables-summary-label">Available</span>
+          </div>
+          <div className="tables-summary-item" style={{ borderColor: "#F59E0B" }}>
+            <span className="tables-summary-count" style={{ color: "#F59E0B" }}>{openBillCount}</span>
+            <span className="tables-summary-label">Open Bill</span>
+          </div>
+          <div className="tables-summary-item" style={{ borderColor: "#3B82F6" }}>
+            <span className="tables-summary-count" style={{ color: "#3B82F6" }}>{reservedCount}</span>
+            <span className="tables-summary-label">Reserved</span>
+          </div>
+          <div className="tables-summary-item" style={{ borderColor: "#D1D5DB" }}>
+            <span className="tables-summary-count" style={{ color: "#9CA3AF" }}>{activeTables.length}</span>
+            <span className="tables-summary-label">Total Active</span>
+          </div>
         </div>
       )}
 
       {loading ? (
         <p style={{ color: "#999", padding: "24px 0" }}>Loading...</p>
       ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Table</th>
-                <th>Capacity</th>
-                <th>Status</th>
-                <th>Active</th>
-                {isAdmin && <th style={{ width: "200px" }}>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {tables.map((t) => {
-                const st = STATUS_STYLE[t.status] || STATUS_STYLE.available;
-                return (
-                  <tr key={t.id} style={{ opacity: t.is_active ? 1 : 0.5 }}>
-                    <td style={{ fontWeight: 600 }}>{t.name}</td>
-                    <td style={{ color: "#888" }}>{t.capacity} seats</td>
-                    <td>
-                      <span className="badge" style={{ background: st.background, color: st.color }}>
-                        {st.label}
-                      </span>
-                    </td>
-                    <td>
-                      {isAdmin ? (
-                        <button
-                          className={`toggle-btn${t.is_active ? " active" : ""}`}
-                          onClick={() => handleToggleActive(t)}
-                        >
-                          {t.is_active ? "Active" : "Inactive"}
-                        </button>
-                      ) : (
-                        <span style={{ color: t.is_active ? "#22C55E" : "#9CA3AF", fontSize: "12px" }}>
-                          {t.is_active ? "Active" : "Inactive"}
-                        </span>
-                      )}
-                    </td>
-                    {isAdmin && (
-                      <td>
-                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                          {/* Quick status buttons */}
-                          {["available", "occupied", "reserved"].map((s) => (
+        <>
+          {/* Active tables card grid */}
+          <div className="tables-card-grid">
+            {activeTables.map((t) => (
+              <TableCard
+                key={t.id}
+                t={t}
+                isAdmin={isAdmin}
+                onEdit={() => { setEditing(t); setModalOpen(true); }}
+                onStatusChange={handleStatusChange}
+                onToggleActive={handleToggleActive}
+              />
+            ))}
+            {activeTables.length === 0 && (
+              <p style={{ color: "#bbb", padding: "40px", gridColumn: "1/-1", textAlign: "center" }}>
+                No active tables. Add your first table to get started.
+              </p>
+            )}
+          </div>
+
+          {/* Inactive tables — admin only */}
+          {isAdmin && inactiveTables.length > 0 && (
+            <div style={{ marginTop: "36px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "12px" }}>
+                Inactive Tables
+              </p>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Table</th>
+                      <th>Capacity</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inactiveTables.map((t) => (
+                      <tr key={t.id} style={{ opacity: 0.6 }}>
+                        <td style={{ fontWeight: 600 }}>{t.name}</td>
+                        <td style={{ color: "#888" }}>{t.capacity} seats</td>
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
                             <button
-                              key={s}
                               className="btn btn-sm"
-                              style={{
-                                background: t.status === s ? STATUS_STYLE[s].color : "#f0f0f0",
-                                color:      t.status === s ? "#fff" : "#555",
-                                border:     "none",
-                                fontSize:   "11px",
-                              }}
-                              onClick={() => handleStatusChange(t, s)}
-                              disabled={t.status === s}
+                              style={{ background: "#DCFCE7", color: "#166534", border: "none" }}
+                              onClick={() => handleToggleActive(t)}
                             >
-                              {STATUS_STYLE[s].label}
+                              Activate
                             </button>
-                          ))}
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() => { setEditing(t); setModalOpen(true); }}
-                          >
-                            Edit
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-              {tables.length === 0 && (
-                <tr>
-                  <td colSpan={isAdmin ? 5 : 4} style={{ textAlign: "center", color: "#bbb", padding: "40px" }}>
-                    No tables yet. Add your first table to get started.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                            <button
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => { setEditing(t); setModalOpen(true); }}
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {modalOpen && (
