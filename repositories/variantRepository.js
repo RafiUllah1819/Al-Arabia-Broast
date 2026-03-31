@@ -5,7 +5,7 @@ export async function getVariantsByProduct(productId) {
     `SELECT id, product_id, name, price, is_available, is_active, sort_order
      FROM   product_variants
      WHERE  product_id = $1
-     ORDER  BY sort_order ASC, name ASC`,
+     ORDER  BY name ASC`,
     [productId]
   );
   return result.rows;

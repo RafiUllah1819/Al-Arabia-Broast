@@ -42,7 +42,7 @@ export async function getPOSMenu() {
      WHERE  product_id = ANY($1)
        AND  is_active     = TRUE
        AND  is_available  = TRUE
-     ORDER  BY sort_order ASC, name ASC`,
+     ORDER  BY name ASC`,
     [productIds]
   ).catch((err) => { throw Object.assign(err, { _step: "variants" }); });
 

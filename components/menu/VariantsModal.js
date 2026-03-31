@@ -168,11 +168,6 @@ export default function VariantsModal({ product, isAdmin, onClose }) {
                     <input className="form-input" type="number" placeholder="0.00" step="0.01" min="0"
                       value={form.price} onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))} required />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Sort</label>
-                    <input className="form-input" type="number" min="0" style={{ width: "70px" }}
-                      value={form.sort_order} onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))} />
-                  </div>
                   <button type="submit" className="btn btn-primary" style={{ marginBottom: "0" }} disabled={saving}>
                     {saving ? "..." : "+ Add"}
                   </button>
