@@ -413,6 +413,115 @@ button {
   width: 580px;
 }
 
+.modal-xl {
+  width: min(880px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-xl .modal-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Product form three-column grid ──────────────────────────────────────── */
+.product-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 200px;
+  gap: 24px;
+  align-items: start;
+}
+
+.product-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.product-form-image-col {
+  gap: 8px;
+}
+
+/* ── Image upload box ─────────────────────────────────────────────────────── */
+.product-img-upload-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px dashed #D1D5DB;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #F9FAFB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-img-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 6px;
+}
+
+/* ── Variant list ─────────────────────────────────────────────────────────── */
+.variant-list {
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.variant-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 13px;
+  background: #fff;
+}
+
+.variant-row:last-child {
+  border-bottom: none;
+}
+
+.variant-name {
+  flex: 1;
+  font-weight: 500;
+  color: #111827;
+}
+
+.variant-price {
+  color: #6B7280;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.variant-remove {
+  background: none;
+  border: none;
+  color: #EF4444;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.variant-remove:hover {
+  background: #FEF2F2;
+}
+
+.variant-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
 /* ── Two/Three-column form rows ───────────────────────────────────────────── */
 .form-row {
   display: grid;
@@ -1287,6 +1396,12 @@ button {
 @media (max-width: 860px) {
   .settings-layout {
     grid-template-columns: 1fr;
+  }
+  .product-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-form-image-col {
+    max-width: 240px;
   }
 }
 
