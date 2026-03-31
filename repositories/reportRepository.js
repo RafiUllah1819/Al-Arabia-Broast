@@ -3,11 +3,17 @@ import { query } from "../lib/db";
 // ── Dashboard queries ─────────────────────────────────────────────────────────
 
 /**
- * Today's key stats in two queries.
- * Returns: { total_orders, paid_orders, today_revenue, avg_order_value, kitchen_pending }
+ * Dashboard stats in three parallel queries.
+ * Returns: {
+ *   total_orders, paid_orders, today_revenue, avg_order_value,  — today
+ *   monthly_revenue, unpaid_bills,                               — broader
+ *   kitchen_pending                                              — live queue
+ * }
  */
 export async function getDashboardStats() {
-  const [salesRes, kitchenRes] = await Promise.all([
+  const [salesRes, kitchenRes, broadRes] = await Promise.all([
+
+    // Today's sales stats
     query(
       `SELECT
          COUNT(DISTINCT o.id)                                               AS total_orders,
@@ -22,16 +28,36 @@ export async function getDashboardStats() {
        LEFT   JOIN payments p ON p.order_id = o.id
        WHERE  DATE(o.created_at) = CURRENT_DATE`
     ),
+
+    // Live kitchen queue
     query(
       `SELECT COUNT(*) AS kitchen_pending
        FROM   orders
        WHERE  status IN ('pending', 'preparing')`
+    ),
+
+    // Monthly revenue + unpaid bills (all-time, single scan)
+    query(
+      `SELECT
+         COALESCE(SUM(
+           CASE WHEN p.status = 'paid'
+                AND DATE_TRUNC('month', o.created_at) = DATE_TRUNC('month', CURRENT_DATE)
+                THEN p.amount END
+         ), 0) AS monthly_revenue,
+         COUNT(DISTINCT
+           CASE WHEN p.id IS NULL AND o.status <> 'cancelled'
+                THEN o.id END
+         )     AS unpaid_bills
+       FROM   orders  o
+       LEFT   JOIN payments p ON p.order_id = o.id`
     ),
   ]);
 
   return {
     ...salesRes.rows[0],
     kitchen_pending: parseInt(kitchenRes.rows[0].kitchen_pending),
+    monthly_revenue: parseFloat(broadRes.rows[0].monthly_revenue),
+    unpaid_bills:    parseInt(broadRes.rows[0].unpaid_bills),
   };
 }
 

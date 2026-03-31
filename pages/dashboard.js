@@ -177,9 +177,16 @@ export default function DashboardPage() {
         <StatCard
           label="Today's Revenue"
           value={`Rs. ${fmtK(stats.today_revenue)}`}
-          sub={`Avg Rs. ${fmt(stats.avg_order_value)} / order`}
+          sub="Today's paid orders"
           accent="#EF476F"
           icon="₨"
+        />
+        <StatCard
+          label="Monthly Revenue"
+          value={`Rs. ${fmtK(stats.monthly_revenue)}`}
+          sub="This month"
+          accent="#7C3AED"
+          icon="📅"
         />
         <StatCard
           label="Total Orders"
@@ -194,6 +201,20 @@ export default function DashboardPage() {
           sub={`${parseInt(stats.total_orders) > 0 ? Math.round((parseInt(stats.paid_orders) / parseInt(stats.total_orders)) * 100) : 0}% of today's orders`}
           accent="#22C55E"
           icon="✓"
+        />
+        <StatCard
+          label="Unpaid Bills"
+          value={stats.unpaid_bills}
+          sub="Pending payment"
+          accent="#F59E0B"
+          icon="⚠"
+        />
+        <StatCard
+          label="Avg Order Value"
+          value={`Rs. ${fmt(stats.avg_order_value)}`}
+          sub="Today's paid orders"
+          accent="#3B82F6"
+          icon="~"
         />
         <StatCard
           label="Kitchen Queue"
