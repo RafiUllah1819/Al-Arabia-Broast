@@ -58,7 +58,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
   },
-  link: { color: "#e94560", fontSize: "13px" },
+  link: { color: "#EF476F", fontSize: "13px" },
   logoutBtn: {
     background: "none",
     border: "none",

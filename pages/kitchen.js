@@ -9,15 +9,15 @@ const TYPE_LABEL = {
 };
 
 const TYPE_COLOR = {
-  "dine-in":  { bg: "#eef2ff", text: "#3b5bdb", border: "#3b5bdb" },
-  "takeaway": { bg: "#fff8f0", text: "#e67700", border: "#e67700" },
-  "delivery": { bg: "#f3f0ff", text: "#7048e8", border: "#7048e8" },
+  "dine-in":  { bg: "#EFF6FF", text: "#3B82F6", border: "#3B82F6" },
+  "takeaway": { bg: "#FFF7ED", text: "#F59E0B", border: "#F59E0B" },
+  "delivery": { bg: "#F5F3FF", text: "#7C3AED", border: "#7C3AED" },
 };
 
 const STATUS_INFO = {
-  pending:   { label: "New",       bg: "#fff9db", text: "#e67700" },
-  preparing: { label: "Preparing", bg: "#e8f4fd", text: "#1971c2" },
-  ready:     { label: "Ready",     bg: "#f0fff4", text: "#2f9e44" },
+  pending:   { label: "New",       bg: "#FEF3C7", text: "#92400E" },
+  preparing: { label: "Preparing", bg: "#DBEAFE", text: "#1E40AF" },
+  ready:     { label: "Ready",     bg: "#DCFCE7", text: "#166534" },
 };
 
 // Label on the complete button changes with current status
@@ -257,8 +257,8 @@ function Ticket({ order, onComplete, completing }) {
   const tableInfo  = order.table_number ? `Table ${order.table_number}` : null;
 
   // Urgency shifts left border color: type color → amber → red
-  const borderColor = elapsed.mins >= 20 ? "#e03131"
-    : elapsed.mins >= 10 ? "#f08c00"
+  const borderColor = elapsed.mins >= 20 ? "#EF4444"
+    : elapsed.mins >= 10 ? "#F59E0B"
     : typeColor.border;
 
   const elapsedClass = elapsed.mins >= 20 ? "kt-elapsed-high"

@@ -200,8 +200,8 @@ function PaymentSummaryReport({ rows }) {
                   <td>
                     <span className="badge" style={
                       r.method === "cash"
-                        ? { background: "#f0fff4", color: "#2f9e44" }
-                        : { background: "#f0f4ff", color: "#3b5bdb" }
+                        ? { background: "#DCFCE7", color: "#166534" }
+                        : { background: "#EFF6FF", color: "#3B82F6" }
                     }>
                       {r.method}
                     </span>

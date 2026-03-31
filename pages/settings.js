@@ -149,7 +149,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           className="btn btn-sm"
-                          style={{ background: "#fff5f5", color: "#e03131", border: "1px solid #ffc9c9" }}
+                          style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
                           onClick={() => handleChange(field.key, "")}
                         >
                           Remove
@@ -167,7 +167,7 @@ export default function SettingsPage() {
               <div className="form-group" key={field.key}>
                 <label className="form-label">
                   {field.label}
-                  {field.required && <span style={{ color: "#e94560", marginLeft: "3px" }}>*</span>}
+                  {field.required && <span style={{ color: "#EF476F", marginLeft: "3px" }}>*</span>}
                   {field.hint && <span className="form-hint"> — {field.hint}</span>}
                 </label>
                 {field.type === "textarea" ? (
@@ -195,7 +195,7 @@ export default function SettingsPage() {
 
           {error   && <p className="form-error">{error}</p>}
           {success && (
-            <p style={{ color: "#2f9e44", fontSize: "13px", fontWeight: 500 }}>
+            <p style={{ color: "#22C55E", fontSize: "13px", fontWeight: 500 }}>
               Settings saved successfully.
             </p>
           )}

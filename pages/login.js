@@ -140,13 +140,13 @@ const styles = {
     outline: "none",
   },
   error: {
-    color: "#e94560",
+    color: "#EF476F",
     fontSize: "13px",
     margin: 0,
   },
   button: {
     padding: "11px",
-    background: "#e94560",
+    background: "#EF476F",
     color: "#fff",
     border: "none",
     borderRadius: "5px",

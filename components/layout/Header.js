@@ -14,10 +14,10 @@ const PAGE_TITLES = {
 
 // Color for each role badge in the header
 const ROLE_COLORS = {
-  admin:   { background: "#fff0f3", color: "#e94560" },
-  manager: { background: "#f0f4ff", color: "#3b5bdb" },
-  cashier: { background: "#f0fff4", color: "#2f9e44" },
-  kitchen: { background: "#fff8f0", color: "#e67700" },
+  admin:   { background: "#FEF0F3", color: "#EF476F" },
+  manager: { background: "#EFF6FF", color: "#3B82F6" },
+  cashier: { background: "#DCFCE7", color: "#166534" },
+  kitchen: { background: "#FFF7ED", color: "#F59E0B" },
 };
 
 export default function Header({ pathname }) {

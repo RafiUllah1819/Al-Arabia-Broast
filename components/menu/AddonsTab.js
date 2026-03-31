@@ -143,8 +143,8 @@ export default function AddonsTab({ isAdmin }) {
                 style={{
                   padding: "10px 16px",
                   cursor: "pointer",
-                  background: selectedGroup?.id === g.id ? "#fff0f3" : "transparent",
-                  borderLeft: selectedGroup?.id === g.id ? "3px solid #e94560" : "3px solid transparent",
+                  background: selectedGroup?.id === g.id ? "#FEF0F3" : "transparent",
+                  borderLeft: selectedGroup?.id === g.id ? "3px solid #EF476F" : "3px solid transparent",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
@@ -235,8 +235,8 @@ export default function AddonsTab({ isAdmin }) {
                 {isAdmin && (
                   <button className="btn btn-sm"
                     style={selectedGroup.is_active
-                      ? { background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }
-                      : { background: "#f0fff4", color: "#2f9e44", border: "1px solid #b2f2bb" }}
+                      ? { background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }
+                      : { background: "#DCFCE7", color: "#166534", border: "1px solid #86EFAC" }}
                     onClick={() => handleToggleGroup(selectedGroup)}>
                     {selectedGroup.is_active ? "Deactivate Group" : "Activate Group"}
                   </button>
@@ -275,7 +275,7 @@ export default function AddonsTab({ isAdmin }) {
                                 Edit
                               </button>
                               <button className="btn btn-sm"
-                                style={{ background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }}
+                                style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
                                 onClick={() => handleDeleteItem(item.id)}>
                                 Delete
                               </button>

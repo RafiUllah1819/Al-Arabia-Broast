@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 
 const STATUS_STYLE = {
-  available: { background: "#f0fff4", color: "#2f9e44", label: "Available" },
-  occupied:  { background: "#fff9db", color: "#e67700", label: "Occupied"  },
-  reserved:  { background: "#f0f4ff", color: "#3b5bdb", label: "Reserved"  },
+  available: { background: "#DCFCE7", color: "#166534", label: "Available" },
+  occupied:  { background: "#FEF3C7", color: "#92400E", label: "Occupied"  },
+  reserved:  { background: "#EFF6FF", color: "#3B82F6", label: "Reserved"  },
 };
 
 // ── Table Form Modal ───────────────────────────────────────────────────────────
@@ -259,7 +259,7 @@ export default function TablesPage() {
                           {t.is_active ? "Active" : "Inactive"}
                         </button>
                       ) : (
-                        <span style={{ color: t.is_active ? "#2f9e44" : "#aaa", fontSize: "12px" }}>
+                        <span style={{ color: t.is_active ? "#22C55E" : "#9CA3AF", fontSize: "12px" }}>
                           {t.is_active ? "Active" : "Inactive"}
                         </span>
                       )}

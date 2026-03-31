@@ -238,7 +238,7 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                       <td>
                         <button
                           className="btn btn-sm"
-                          style={{ background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }}
+                          style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
                           onClick={() => handleRemove(item.id)}
                         >
                           Remove

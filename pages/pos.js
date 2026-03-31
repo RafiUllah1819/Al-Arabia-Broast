@@ -219,7 +219,7 @@ function OrderContextPanel({
           />
         </div>
         <div className="pos-context-row">
-          <label className="pos-context-label">Address <span style={{ color: "#e03131" }}>*</span></label>
+          <label className="pos-context-label">Address <span style={{ color: "#EF4444" }}>*</span></label>
           <input
             className="form-input pos-context-input"
             placeholder="Delivery address"
@@ -423,7 +423,7 @@ function SuccessBanner({ result, onDismiss }) {
     return (
       <div className="pos-success-overlay" onClick={onDismiss}>
         <div className="pos-success-box" onClick={(e) => e.stopPropagation()}>
-          <div className="pos-success-icon" style={{ background: "#ebfbee", color: "#2f9e44" }}>+</div>
+          <div className="pos-success-icon" style={{ background: "#DCFCE7", color: "#22C55E" }}>+</div>
           <h2 className="pos-success-title">Items Added to Bill</h2>
           <p className="pos-success-number">{order.order_number}</p>
           <div className="pos-success-details">
@@ -433,7 +433,7 @@ function SuccessBanner({ result, onDismiss }) {
             </div>
             <div className="pos-success-row" style={{ fontWeight: 700 }}>
               <span>New Total</span>
-              <span style={{ color: "#e94560" }}>Rs. {parseFloat(order.total).toFixed(2)}</span>
+              <span style={{ color: "#EF476F" }}>Rs. {parseFloat(order.total).toFixed(2)}</span>
             </div>
             <div className="pos-success-row" style={{ color: "#e67700" }}>
               <span>Payment</span>
@@ -484,7 +484,7 @@ function SuccessBanner({ result, onDismiss }) {
                 </div>
               )}
               {payment?.method === "cash" && changeDue > 0 && (
-                <div className="pos-success-row" style={{ color: "#2f9e44", fontWeight: 700 }}>
+                <div className="pos-success-row" style={{ color: "#22C55E", fontWeight: 700 }}>
                   <span>Change Due</span>
                   <span>Rs. {changeDue.toFixed(2)}</span>
                 </div>
@@ -902,7 +902,7 @@ export default function POSPage() {
         {loading ? (
           <div className="pos-empty">Loading menu...</div>
         ) : error ? (
-          <div className="pos-empty" style={{ color: "#e94560" }}>{error}</div>
+          <div className="pos-empty" style={{ color: "#EF476F" }}>{error}</div>
         ) : (
           <ProductGrid products={filtered} onSelect={handleProductSelect} />
         )}

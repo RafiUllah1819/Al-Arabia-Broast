@@ -12,16 +12,16 @@ function fmtTime(dateStr) {
 }
 
 const STATUS_STYLE = {
-  pending:   { background: "#fff9db", color: "#e67700" },
-  preparing: { background: "#e8f4fd", color: "#1971c2" },
-  ready:     { background: "#f3f0ff", color: "#7048e8" },
-  completed: { background: "#f0fff4", color: "#2f9e44" },
-  cancelled: { background: "#f5f5f5", color: "#aaa"   },
+  pending:   { background: "#FEF3C7", color: "#92400E" },
+  preparing: { background: "#DBEAFE", color: "#1E40AF" },
+  ready:     { background: "#F5F3FF", color: "#7C3AED" },
+  completed: { background: "#DCFCE7", color: "#166534" },
+  cancelled: { background: "#F3F4F6", color: "#9CA3AF" },
 };
 
 const PAY_STYLE = {
-  paid:     { background: "#f0fff4", color: "#2f9e44" },
-  refunded: { background: "#fff3f3", color: "#e03131" },
+  paid:     { background: "#DCFCE7", color: "#166534" },
+  refunded: { background: "#FEF2F2", color: "#EF4444" },
 };
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ function StatCard({ label, value, sub, accent, icon }) {
       <div className="dash-card-icon" style={{ color: accent, background: `${accent}18` }}>{icon}</div>
       <div className="dash-card-body">
         <p className="dash-card-label">{label}</p>
-        <p className="dash-card-value" style={{ color: accent === "#e94560" ? "#1a1a2e" : "#1a1a2e" }}>{value}</p>
+        <p className="dash-card-value">{value}</p>
         {sub && <p className="dash-card-sub">{sub}</p>}
       </div>
     </div>
@@ -63,7 +63,7 @@ function HourlyChart({ data }) {
               <div className="dash-bar-outer">
                 <div
                   className="dash-bar-inner"
-                  style={{ height: `${pct}%`, background: rev > 0 ? "#e94560" : "#eee" }}
+                  style={{ height: `${pct}%`, background: rev > 0 ? "#EF476F" : "#E5E7EB" }}
                 />
               </div>
               <span className="dash-bar-label">{label12}</span>
@@ -104,13 +104,13 @@ function RecentOrders({ orders }) {
             ) : (
               orders.map((o) => (
                 <tr key={o.id}>
-                  <td style={{ fontWeight: 700, color: "#1a1a2e" }}>{o.order_number}</td>
-                  <td style={{ color: "#9aa3b2", fontSize: "13px" }}>{fmtTime(o.created_at)}</td>
+                  <td style={{ fontWeight: 700, color: "#111827" }}>{o.order_number}</td>
+                  <td style={{ color: "#6B7280", fontSize: "13px" }}>{fmtTime(o.created_at)}</td>
                   <td style={{ color: "#555" }}>{o.cashier_name || "—"}</td>
                   <td>
                     <span className="badge" style={
                       o.type === "dine-in"
-                        ? { background: "#f0f4ff", color: "#3b5bdb" }
+                        ? { background: "#EFF6FF", color: "#3B82F6" }
                         : o.type === "delivery"
                         ? { background: "#f3f0ff", color: "#7048e8" }
                         : { background: "#fff8f0", color: "#e67700" }
@@ -118,7 +118,7 @@ function RecentOrders({ orders }) {
                       {o.type === "dine-in" ? "Dine In" : o.type === "delivery" ? "Delivery" : "Takeaway"}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600, color: "#1a1a2e" }}>Rs. {fmt(o.total)}</td>
+                  <td style={{ fontWeight: 600, color: "#111827" }}>Rs. {fmt(o.total)}</td>
                   <td>
                     {o.payment_status ? (
                       <span className="badge" style={PAY_STYLE[o.payment_status]}>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
-        <span style={{ fontSize: "13px", color: "#9aa3b2", fontWeight: 500 }}>
+        <span style={{ fontSize: "13px", color: "#6B7280", fontWeight: 500 }}>
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         </span>
       </div>
@@ -178,28 +178,28 @@ export default function DashboardPage() {
           label="Today's Revenue"
           value={`Rs. ${fmtK(stats.today_revenue)}`}
           sub={`Avg Rs. ${fmt(stats.avg_order_value)} / order`}
-          accent="#e94560"
+          accent="#EF476F"
           icon="₨"
         />
         <StatCard
           label="Total Orders"
           value={parseInt(stats.total_orders)}
           sub="Today"
-          accent="#3b5bdb"
+          accent="#3B82F6"
           icon="#"
         />
         <StatCard
           label="Paid Orders"
           value={parseInt(stats.paid_orders)}
           sub={`${parseInt(stats.total_orders) > 0 ? Math.round((parseInt(stats.paid_orders) / parseInt(stats.total_orders)) * 100) : 0}% of today's orders`}
-          accent="#2f9e44"
+          accent="#22C55E"
           icon="✓"
         />
         <StatCard
           label="Kitchen Queue"
           value={stats.kitchen_pending}
           sub={stats.kitchen_pending > 0 ? "Orders pending/preparing" : "All clear"}
-          accent={stats.kitchen_pending > 0 ? "#e67700" : "#2f9e44"}
+          accent={stats.kitchen_pending > 0 ? "#F59E0B" : "#22C55E"}
           icon="🍳"
         />
       </div>

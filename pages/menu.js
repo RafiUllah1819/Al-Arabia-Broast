@@ -9,9 +9,9 @@ import AddonsTab         from "../components/menu/AddonsTab";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const TYPE_COLORS = {
-  simple:  { background: "#f0f4ff", color: "#3b5bdb" },
-  variant: { background: "#fff8f0", color: "#e67700" },
-  combo:   { background: "#f3f0ff", color: "#7048e8" },
+  simple:  { background: "#EFF6FF", color: "#3B82F6" },
+  variant: { background: "#FFF7ED", color: "#F59E0B" },
+  combo:   { background: "#F5F3FF", color: "#7C3AED" },
 };
 
 function formatPrice(price) {
@@ -94,8 +94,8 @@ function CategoriesTab({ isAdmin }) {
                   <td style={{ color: "#888" }}>{cat.sort_order}</td>
                   <td>
                     <span className="badge" style={cat.is_active
-                      ? { background: "#f0fff4", color: "#2f9e44" }
-                      : { background: "#f5f5f5", color: "#aaa" }}>
+                      ? { background: "#DCFCE7", color: "#166534" }
+                      : { background: "#F3F4F6", color: "#9CA3AF" }}>
                       {cat.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
@@ -106,8 +106,8 @@ function CategoriesTab({ isAdmin }) {
                           onClick={() => { setEditing(cat); setModalOpen(true); }}>Edit</button>
                         <button className="btn btn-sm"
                           style={cat.is_active
-                            ? { background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }
-                            : { background: "#f0fff4", color: "#2f9e44", border: "1px solid #b2f2bb" }}
+                            ? { background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }
+                            : { background: "#DCFCE7", color: "#166534", border: "1px solid #86EFAC" }}
                           onClick={() => handleToggleActive(cat)}>
                           {cat.is_active ? "Deactivate" : "Activate"}
                         </button>
@@ -229,8 +229,8 @@ function ProductsTab({ isAdmin, categories }) {
                   </td>
                   <td>
                     <span className="badge" style={p.is_active
-                      ? { background: "#f0fff4", color: "#2f9e44" }
-                      : { background: "#f5f5f5", color: "#aaa" }}>
+                      ? { background: "#DCFCE7", color: "#166534" }
+                      : { background: "#F3F4F6", color: "#9CA3AF" }}>
                       {p.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
@@ -258,8 +258,8 @@ function ProductsTab({ isAdmin, categories }) {
                             onClick={() => { setEditing(p); setModalOpen(true); }}>Edit</button>
                           <button className="btn btn-sm"
                             style={p.is_active
-                              ? { background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }
-                              : { background: "#f0fff4", color: "#2f9e44", border: "1px solid #b2f2bb" }}
+                              ? { background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }
+                              : { background: "#DCFCE7", color: "#166534", border: "1px solid #86EFAC" }}
                             onClick={() => patchProduct(p, "is_active", !p.is_active)}>
                             {p.is_active ? "Deactivate" : "Activate"}
                           </button>
@@ -426,7 +426,7 @@ function ComboOnlyItemsTab() {
                             Edit
                           </button>
                           <button className="btn btn-sm"
-                            style={{ background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }}
+                            style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
                             onClick={() => handleDelete(item.id)}>
                             Delete
                           </button>

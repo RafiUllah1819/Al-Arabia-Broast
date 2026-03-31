@@ -228,7 +228,7 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
               <div className="product-form-col">
                 <div className="form-group">
                   <label className="form-label">
-                    Product Name <span style={{ color: "#e03131" }}>*</span>
+                    Product Name <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <input
                     className="form-input"
@@ -319,7 +319,7 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                   <>
                     <div className="form-group">
                       <label className="form-label">
-                        Base Price <span style={{ color: "#e03131" }}>*</span>
+                        Base Price <span style={{ color: "#EF4444" }}>*</span>
                       </label>
                       <input
                         className="form-input"
@@ -432,7 +432,7 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                   <>
                     <div className="form-group">
                       <label className="form-label">
-                        Combo Selling Price <span style={{ color: "#e03131" }}>*</span>
+                        Combo Selling Price <span style={{ color: "#EF4444" }}>*</span>
                       </label>
                       <input
                         className="form-input"
@@ -481,7 +481,7 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
               {/* ── Right column: image ───────────────────────────────── */}
               <div className="product-form-col product-form-image-col">
                 <label className="form-label">
-                  Product Image <span style={{ color: "#e03131" }}>*</span>
+                  Product Image <span style={{ color: "#EF4444" }}>*</span>
                 </label>
 
                 <div className="product-img-upload-box">
@@ -522,9 +522,9 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                     style={{
                       marginTop: "6px",
                       width: "100%",
-                      background: "#fff3f3",
-                      color: "#e03131",
-                      border: "1px solid #ffc9c9",
+                      background: "#FEF2F2",
+                      color: "#EF4444",
+                      border: "1px solid #FECACA",
                     }}
                     onClick={() => { setImageFile(null); setImagePreview(""); }}
                   >

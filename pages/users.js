@@ -3,11 +3,11 @@ import { useAuth } from "../hooks/useAuth";
 import UserFormModal from "../components/users/UserFormModal";
 
 const ROLE_COLORS = {
-  admin:   { background: "#fff0f3", color: "#e94560" },
-  manager: { background: "#f0f4ff", color: "#3b5bdb" },
-  cashier: { background: "#f0fff4", color: "#2f9e44" },
-  kitchen: { background: "#fff8f0", color: "#e67700" },
-  waiter:  { background: "#f3f0ff", color: "#7048e8" },
+  admin:   { background: "#FEF0F3", color: "#EF476F" },
+  manager: { background: "#EFF6FF", color: "#3B82F6" },
+  cashier: { background: "#DCFCE7", color: "#166534" },
+  kitchen: { background: "#FFF7ED", color: "#F59E0B" },
+  waiter:  { background: "#F5F3FF", color: "#7C3AED" },
 };
 
 export default function UsersPage() {
@@ -126,8 +126,8 @@ export default function UsersPage() {
                       className="badge"
                       style={
                         user.is_active
-                          ? { background: "#f0fff4", color: "#2f9e44" }
-                          : { background: "#f5f5f5", color: "#aaa" }
+                          ? { background: "#DCFCE7", color: "#166534" }
+                          : { background: "#F3F4F6", color: "#9CA3AF" }
                       }
                     >
                       {user.is_active ? "Active" : "Inactive"}
@@ -145,8 +145,8 @@ export default function UsersPage() {
                         className="btn btn-sm"
                         style={
                           user.is_active
-                            ? { background: "#fff3f3", color: "#e03131", border: "1px solid #ffc9c9" }
-                            : { background: "#f0fff4", color: "#2f9e44", border: "1px solid #b2f2bb" }
+                            ? { background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }
+                            : { background: "#DCFCE7", color: "#166534", border: "1px solid #86EFAC" }
                         }
                         onClick={() => handleToggleActive(user)}
                         disabled={user.id === currentUser?.id}

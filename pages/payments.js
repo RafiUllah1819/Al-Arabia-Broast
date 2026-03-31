@@ -19,11 +19,11 @@ function fmtDateTime(d) {
 
 // Order status (kitchen workflow)
 const ORDER_STATUS_STYLE = {
-  pending:   { background: "#fff9db", color: "#e67700" },
-  preparing: { background: "#e8f4fd", color: "#1971c2" },
-  ready:     { background: "#f3f0ff", color: "#7048e8" },
-  completed: { background: "#f0fff4", color: "#2f9e44" },
-  cancelled: { background: "#f5f5f5", color: "#aaa"    },
+  pending:   { background: "#FEF3C7", color: "#92400E" },
+  preparing: { background: "#DBEAFE", color: "#1E40AF" },
+  ready:     { background: "#F5F3FF", color: "#7C3AED" },
+  completed: { background: "#DCFCE7", color: "#166534" },
+  cancelled: { background: "#F3F4F6", color: "#9CA3AF" },
 };
 const ORDER_STATUS_LABEL = {
   pending:   "Pending",
@@ -35,15 +35,15 @@ const ORDER_STATUS_LABEL = {
 
 // Payment status
 const PAY_STYLE = {
-  paid:     { background: "#f0fff4", color: "#2f9e44" },
-  unpaid:   { background: "#fff3f3", color: "#e03131" },
-  refunded: { background: "#fff3cd", color: "#b45309" },
+  paid:     { background: "#DCFCE7", color: "#166534" },
+  unpaid:   { background: "#FEF2F2", color: "#EF4444" },
+  refunded: { background: "#FEF3C7", color: "#92400E" },
 };
 
 const TYPE_STYLE = {
-  "dine-in":  { background: "#f0f4ff", color: "#3b5bdb" },
-  "takeaway": { background: "#fff8f0", color: "#e67700" },
-  "delivery": { background: "#f3fff3", color: "#2f9e44" },
+  "dine-in":  { background: "#EFF6FF", color: "#3B82F6" },
+  "takeaway": { background: "#FFF7ED", color: "#F59E0B" },
+  "delivery": { background: "#DCFCE7", color: "#22C55E" },
 };
 const TYPE_LABEL = { "dine-in": "Dine In", "takeaway": "Takeaway", "delivery": "Delivery" };
 
@@ -511,14 +511,14 @@ export default function PaymentsPage() {
           <div className="bills-stat-divider" />
           <div className="bills-stat">
             <span className="bills-stat-label">Paid</span>
-            <span className="bills-stat-value" style={{ color: "#2f9e44" }}>
+            <span className="bills-stat-value" style={{ color: "#22C55E" }}>
               Rs. {stats.paidAmount.toFixed(2)}
             </span>
           </div>
           <div className="bills-stat-divider" />
           <div className="bills-stat">
             <span className="bills-stat-label">Unpaid</span>
-            <span className="bills-stat-value" style={{ color: stats.unpaidAmount > 0 ? "#e03131" : "#aaa" }}>
+            <span className="bills-stat-value" style={{ color: stats.unpaidAmount > 0 ? "#EF4444" : "#9CA3AF" }}>
               Rs. {stats.unpaidAmount.toFixed(2)}
             </span>
           </div>
