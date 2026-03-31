@@ -97,12 +97,40 @@ export async function getPOSMenu() {
     }
   }
 
+  // 5. Combo contents for combo-type products
+  const comboIds = products.filter((p) => p.type === "combo").map((p) => p.id);
+  const comboContentsByProduct = {};
+
+  if (comboIds.length > 0) {
+    const comboRows = await query(
+      `SELECT ci.combo_id, ci.quantity,
+              p.name   AS product_name,
+              pv.name  AS variant_name,
+              coi.name AS combo_only_item_name
+       FROM   combo_items ci
+       LEFT   JOIN products          p   ON p.id   = ci.product_id
+       LEFT   JOIN product_variants  pv  ON pv.id  = ci.variant_id
+       LEFT   JOIN combo_only_items  coi ON coi.id = ci.combo_only_item_id
+       WHERE  ci.combo_id = ANY($1)
+       ORDER  BY ci.combo_id, ci.id ASC`,
+      [comboIds]
+    ).catch((err) => { throw Object.assign(err, { _step: "combo_contents" }); });
+
+    for (const row of comboRows.rows) {
+      if (!comboContentsByProduct[row.combo_id]) comboContentsByProduct[row.combo_id] = [];
+      const label = row.combo_only_item_name
+        || (row.variant_name ? `${row.product_name} — ${row.variant_name}` : row.product_name);
+      comboContentsByProduct[row.combo_id].push({ name: label, quantity: row.quantity });
+    }
+  }
+
   // ── Assemble final product objects ──────────────────────────────────────────
   const enriched = products.map((p) => ({
     ...p,
-    base_price:   p.base_price != null ? parseFloat(p.base_price) : null,
-    variants:     variantsByProduct[p.id]              || [],
-    addon_groups: Object.values(addonsByProduct[p.id] || {}),
+    base_price:      p.base_price != null ? parseFloat(p.base_price) : null,
+    variants:        variantsByProduct[p.id]              || [],
+    addon_groups:    Object.values(addonsByProduct[p.id] || {}),
+    combo_contents:  p.type === "combo" ? (comboContentsByProduct[p.id] || []) : [],
   }));
 
   return { categories: catRows.rows, products: enriched };

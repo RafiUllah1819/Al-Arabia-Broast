@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import ProductPickerModal from "../components/pos/ProductPickerModal";
+import ComboPickerModal   from "../components/pos/ComboPickerModal";
 import PaymentModal       from "../components/pos/PaymentModal";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -577,6 +578,7 @@ export default function POSPage() {
   const [activeCat,     setActiveCat]     = useState("all");
   const [search,        setSearch]        = useState("");
   const [pickerProduct, setPickerProduct] = useState(null);
+  const [comboProduct,  setComboProduct]  = useState(null);
 
   const [cartItems,  setCartItems]  = useState([]);
   const [orderType,  setOrderType]  = useState("dine_in");
@@ -705,6 +707,11 @@ export default function POSPage() {
   }
 
   function handleProductSelect(product) {
+    if (product.type === "combo") {
+      setComboProduct(product);
+      return;
+    }
+
     const needsModal =
       product.type === "variant" ||
       (product.addon_groups && product.addon_groups.length > 0);
@@ -964,6 +971,15 @@ export default function POSPage() {
           product={pickerProduct}
           onConfirm={handleConfirmPick}
           onClose={() => setPickerProduct(null)}
+        />
+      )}
+
+      {/* Combo deal picker */}
+      {comboProduct && (
+        <ComboPickerModal
+          product={comboProduct}
+          onConfirm={(pick) => { handleConfirmPick(pick); setComboProduct(null); }}
+          onClose={() => setComboProduct(null)}
         />
       )}
 

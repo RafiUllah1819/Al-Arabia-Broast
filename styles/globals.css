@@ -1289,6 +1289,47 @@ button {
   line-height: 1.4;
 }
 
+/* ── Combo contents list (in ComboPickerModal) ───────────────────────────── */
+.combo-contents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.combo-contents-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 13px;
+  background: #fff;
+}
+
+.combo-contents-row:last-child {
+  border-bottom: none;
+}
+
+.combo-contents-qty {
+  min-width: 28px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #7C3AED;
+  border-radius: 4px;
+  padding: 1px 5px;
+  text-align: center;
+}
+
+.combo-contents-name {
+  flex: 1;
+  font-weight: 500;
+  color: #111827;
+}
+
 /* ── Dashboard ─────────────────────────────────────────────────────────────── */
 .dash-cards {
   display: grid;
