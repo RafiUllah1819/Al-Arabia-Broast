@@ -281,6 +281,7 @@ function CartPanel({
   onOpenTablePicker, onOpenWaiterPicker,
   onChangeQty, onRemove, onClear, onCharge, onPlaceOrder,
   openOrder, checkingOpenOrder, saving, onAddToOpenBill,
+  onMobileClose,
 }) {
   const subtotal = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
   const total    = subtotal;
@@ -291,6 +292,10 @@ function CartPanel({
   return (
     <div className="pos-cart">
       <div className="pos-cart-header">
+        {/* Back-to-menu button — only visible on mobile (CSS-controlled) */}
+        <button className="pos-mobile-back-btn" onClick={onMobileClose}>
+          ← Menu
+        </button>
         <span className="pos-cart-title">Order</span>
         {items.length > 0 && (
           <button className="pos-cart-clear" onClick={onClear}>Clear</button>
@@ -577,8 +582,9 @@ export default function POSPage() {
   const [error,         setError]         = useState("");
   const [activeCat,     setActiveCat]     = useState("all");
   const [search,        setSearch]        = useState("");
-  const [pickerProduct, setPickerProduct] = useState(null);
-  const [comboProduct,  setComboProduct]  = useState(null);
+  const [pickerProduct,   setPickerProduct]   = useState(null);
+  const [comboProduct,    setComboProduct]    = useState(null);
+  const [mobileCartOpen,  setMobileCartOpen]  = useState(false);
 
   const [cartItems,  setCartItems]  = useState([]);
   const [orderType,  setOrderType]  = useState("dine_in");
@@ -899,8 +905,10 @@ export default function POSPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
+  const cartSubtotal = cartItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
+
   return (
-    <div className="pos-layout">
+    <div className={`pos-layout${mobileCartOpen ? " mobile-cart-open" : ""}`}>
 
       {/* Left: product browser */}
       <div className="pos-browser">
@@ -941,6 +949,17 @@ export default function POSPage() {
         ) : (
           <ProductGrid products={filtered} onSelect={handleProductSelect} />
         )}
+
+        {/* Mobile cart toggle button — fixed at bottom, only visible on mobile via CSS */}
+        {cartItems.length > 0 && (
+          <button
+            className="pos-mobile-cart-btn"
+            onClick={() => setMobileCartOpen(true)}
+          >
+            <span>View Cart · {cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</span>
+            <span className="pos-mobile-cart-btn-total">Rs. {cartSubtotal.toFixed(2)}</span>
+          </button>
+        )}
       </div>
 
       {/* Right: cart */}
@@ -963,6 +982,7 @@ export default function POSPage() {
         checkingOpenOrder={checkingOpenOrder}
         saving={saving}
         onAddToOpenBill={handleAddToOpenBill}
+        onMobileClose={() => setMobileCartOpen(false)}
       />
 
       {/* Variant / addon picker */}

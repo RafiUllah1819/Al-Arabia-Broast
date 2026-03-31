@@ -37,12 +37,12 @@ const ROLE_LABELS = {
   waiter:  "Waiter",
 };
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth();
   const router   = useRouter();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isOpen ? " sidebar-open" : ""}`}>
       <div className="sidebar-logo">
         🍽 Al-Arabia
         <span className="sidebar-logo-sub">Broast and Pizza Point</span>
@@ -66,6 +66,7 @@ export default function Sidebar() {
                   key={link.href}
                   href={link.href}
                   className={router.pathname === link.href ? "active" : ""}
+                  onClick={onClose}
                 >
                   <span className="sidebar-icon">{link.icon}</span>
                   <span>{link.label}</span>

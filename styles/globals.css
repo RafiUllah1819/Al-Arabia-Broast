@@ -168,12 +168,14 @@ button {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  gap: 12px;
 }
 
 .header-title {
   font-size: 17px;
   font-weight: 700;
   color: #111827;
+  white-space: nowrap;
 }
 
 .header-right {
@@ -411,6 +413,20 @@ button {
 /* ── Modal sizes ──────────────────────────────────────────────────────────── */
 .modal-lg {
   width: 580px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-lg .modal-header,
+.modal-lg .modal-footer {
+  flex-shrink: 0;
+}
+
+.modal-lg .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .modal-xl {
@@ -3211,4 +3227,440 @@ button {
   flex-direction: column;
   gap: 8px;
   background: #fff;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET & MOBILE
+
+   Breakpoints:
+     ≤ 1023px  tablet + mobile  — sidebar overlay, compact header/padding
+     ≤  768px  mobile only      — POS drawer, stacked layouts, touch targets
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Header additions (hamburger + left group) ─────────────────────────────── */
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Hamburger — hidden on desktop, shown via tablet/mobile media query */
+.header-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #374151;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.header-menu-btn:hover {
+  background: #F3F4F6;
+}
+
+.header-menu-icon {
+  font-size: 22px;
+  display: block;
+  line-height: 1;
+}
+
+/* Mobile cart toggle + back buttons — hidden on desktop */
+.pos-mobile-cart-btn {
+  display: none;
+}
+
+.pos-mobile-back-btn {
+  display: none;
+}
+
+/* ── Sidebar overlay backdrop ──────────────────────────────────────────────── */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 250;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TABLET + MOBILE  (≤ 1023px)
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1023px) {
+
+  /* Sidebar becomes a fixed overlay — removed from flex flow so main-area fills width */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 220px;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.22);
+  }
+
+  /* Main area now occupies full width (no sidebar in flow) */
+  .main-area {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Show hamburger button */
+  .header-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Tighten header padding */
+  .header {
+    padding: 0 14px;
+  }
+
+  /* Reduce page padding */
+  .page-content {
+    padding: 16px;
+  }
+
+  /* Smaller page title */
+  .page-title {
+    font-size: 20px;
+  }
+
+  /* Modals: remove min-width that would overflow narrow screens */
+  .modal {
+    min-width: 0;
+  }
+
+  .modal-lg {
+    width: min(580px, 96vw);
+  }
+
+  /* Data tables: allow horizontal scroll on tablet */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Bigger tap targets for common buttons */
+  .btn {
+    min-height: 40px;
+    padding: 10px 18px;
+  }
+
+  .btn-sm {
+    min-height: 34px;
+    padding: 7px 14px;
+  }
+
+  .tab-btn {
+    padding: 10px 16px;
+    min-height: 38px;
+  }
+
+  /* POS: narrow the cart slightly so product grid keeps breathing room */
+  .pos-cart {
+    width: 300px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MOBILE ONLY  (≤ 768px)
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* ── General layout ──────────────────────────────────────────────────────── */
+
+  .page-content {
+    padding: 12px;
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  /* Hide username and divider in header — too cramped */
+  .header-username,
+  .header-divider {
+    display: none;
+  }
+
+  /* Larger touch targets on form elements */
+  .form-input {
+    padding: 11px 14px;
+    font-size: 15px;
+    min-height: 44px;
+  }
+
+  /* Toggle switch: bigger for fat fingers */
+  .toggle-switch {
+    width: 46px;
+    height: 26px;
+  }
+
+  .toggle-slider::before {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+  }
+
+  /* Modal: slide up from bottom as a bottom sheet */
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .modal-lg {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-lg .modal-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .modal-xl {
+    border-radius: 18px 18px 0 0;
+    max-height: 95vh;
+  }
+
+  .pos-picker-modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+  }
+
+  /* ── POS mobile layout ───────────────────────────────────────────────────── */
+
+  /* Stacked: browser on top, cart is a fixed bottom drawer */
+  .pos-layout {
+    flex-direction: column;
+    position: relative;
+  }
+
+  .pos-browser {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Category tabs: single row horizontal scroll, no wrap */
+  .pos-cat-tabs {
+    flex-wrap: nowrap;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .pos-cat-tab {
+    font-size: 12px;
+    padding: 6px 13px;
+  }
+
+  /* Product grid: slightly smaller cards on narrow screens */
+  .pos-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .pos-product-card {
+    padding: 10px;
+  }
+
+  /* Cart drawer: fixed to bottom, hidden off-screen by default */
+  .pos-cart {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 74vh;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    border-left: none;
+    border-top: 1px solid #E5E7EB;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.14);
+    z-index: 200;
+  }
+
+  /* Drawer open state */
+  .pos-layout.mobile-cart-open .pos-cart {
+    transform: translateY(0);
+  }
+
+  /* Drag-handle pill on top of cart drawer */
+  .pos-cart-header {
+    padding-top: 22px;
+    position: relative;
+  }
+
+  .pos-cart-header::before {
+    content: "";
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 38px;
+    height: 4px;
+    background: #D1D5DB;
+    border-radius: 2px;
+  }
+
+  /* Back-to-menu button: visible on mobile */
+  .pos-mobile-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: #6B7280;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .pos-mobile-back-btn:hover {
+    color: #374151;
+  }
+
+  /* Floating "View Cart" button */
+  .pos-mobile-cart-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    bottom: 16px;
+    left: 12px;
+    right: 12px;
+    background: #EF476F;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 15px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(239, 71, 111, 0.42);
+    z-index: 150;
+    transition: background 0.15s;
+  }
+
+  /* Hide cart button when drawer is open */
+  .pos-layout.mobile-cart-open .pos-mobile-cart-btn {
+    display: none;
+  }
+
+  .pos-mobile-cart-btn:active {
+    background: #E63E63;
+  }
+
+  .pos-mobile-cart-btn-total {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.88;
+  }
+
+  /* Larger qty controls for touch */
+  .pos-qty-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+
+  .pos-qty-btn.sm {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+
+  /* Bigger cart item rows */
+  .pos-cart-item {
+    padding: 12px 14px;
+  }
+
+  /* Taller charge button */
+  .pos-charge-btn {
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* ── Kitchen mobile ──────────────────────────────────────────────────────── */
+
+  .kitchen-header {
+    padding: 10px 14px;
+    min-height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .kitchen-title {
+    font-size: 16px;
+  }
+
+  .kitchen-refresh-hint {
+    display: none;
+  }
+
+  /* Single column ticket grid on phone */
+  .kitchen-grid {
+    padding: 10px;
+    gap: 10px;
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Tables page mobile ──────────────────────────────────────────────────── */
+
+  .tables-summary {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tables-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 10px;
+  }
+
+  /* ── Dashboard mobile ────────────────────────────────────────────────────── */
+
+  /* 2-column stat cards on phone */
+  .dash-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 }

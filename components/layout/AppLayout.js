@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../../contexts/AuthContext";
 import { canAccess } from "../../lib/roles";
@@ -12,6 +12,12 @@ export default function AppLayout({ children }) {
   const { user, loading } = useAuth();
   const router            = useRouter();
   const isPublic          = PUBLIC_PAGES.includes(router.pathname);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close sidebar whenever the route changes (e.g. user taps a nav link)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [router.pathname]);
 
   useEffect(() => {
     if (loading || isPublic) return;
@@ -45,9 +51,18 @@ export default function AppLayout({ children }) {
 
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Dark backdrop — only rendered/visible on tablet/mobile when sidebar is open */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
       <div className="main-area">
-        <Header pathname={router.pathname} />
+        <Header
+          pathname={router.pathname}
+          onMenuToggle={() => setSidebarOpen((o) => !o)}
+        />
         <main className="page-content">{children}</main>
       </div>
     </div>

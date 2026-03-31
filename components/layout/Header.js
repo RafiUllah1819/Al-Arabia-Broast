@@ -20,14 +20,24 @@ const ROLE_COLORS = {
   kitchen: { background: "#FFF7ED", color: "#F59E0B" },
 };
 
-export default function Header({ pathname }) {
+export default function Header({ pathname, onMenuToggle }) {
   const { user, logout } = useAuth();
   const title            = PAGE_TITLES[pathname] || "Restaurant OS";
   const roleStyle        = ROLE_COLORS[user?.role] || {};
 
   return (
     <header className="header">
-      <div className="header-title">{title}</div>
+      <div className="header-left">
+        {/* Hamburger — visible on tablet/mobile only (CSS hides on desktop) */}
+        <button
+          className="header-menu-btn"
+          onClick={onMenuToggle}
+          aria-label="Toggle navigation menu"
+        >
+          <span className="header-menu-icon">☰</span>
+        </button>
+        <div className="header-title">{title}</div>
+      </div>
 
       {user && (
         <div className="header-right">
@@ -36,7 +46,7 @@ export default function Header({ pathname }) {
             {user.role}
           </span>
 
-          {/* User name */}
+          {/* User name — hidden on small screens to save space */}
           <span className="header-username">{user.name}</span>
 
           <span className="header-divider">|</span>
