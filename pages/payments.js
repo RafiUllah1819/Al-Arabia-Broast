@@ -177,6 +177,7 @@ function BillDetailModal({ orderId, settings, onClose }) {
   function handlePrint() {
     if (!order) return;
     printReceipt(order, settings);
+    onClose();
   }
 
   return (
@@ -280,6 +281,14 @@ function BillDetailModal({ orderId, settings, onClose }) {
                             Rs. {(item.line_total + addonTotal * item.quantity).toFixed(2)}
                           </td>
                         </tr>
+                        {(item.combo_contents || []).map((c, ci) => (
+                          <tr key={`combo-${idx}-${ci}`} style={{ background: "#fafafa" }}>
+                            <td style={{ paddingLeft: "28px", fontSize: "12px", color: "#7048e8" }}>
+                              · {c.name}{c.quantity > 1 ? ` x${c.quantity}` : ""}
+                            </td>
+                            <td colSpan={3} />
+                          </tr>
+                        ))}
                         {item.addons.map((a, ai) => (
                           <tr key={`addon-${idx}-${ai}`} style={{ background: "#fafafa" }}>
                             <td style={{ paddingLeft: "28px", fontSize: "12px", color: "#888" }}>+ {a.name}</td>
@@ -546,6 +555,7 @@ export default function PaymentsPage() {
 
       {selectedId && (
         <BillDetailModal
+          key={selectedId}
           orderId={selectedId}
           settings={settings}
           onClose={() => setSelectedId(null)}
