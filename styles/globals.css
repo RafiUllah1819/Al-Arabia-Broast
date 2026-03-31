@@ -2085,6 +2085,20 @@ button {
   color: #888;
 }
 
+.kt-combo-contents {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.kt-combo-line {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  padding-left: 4px;
+}
+
 .kt-addons {
   display: flex;
   flex-wrap: wrap;

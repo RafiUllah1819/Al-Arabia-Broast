@@ -62,18 +62,20 @@ function printKitchenTicket(order) {
     : order.customer_name || "";
 
   const itemsHtml = order.items.map((item) => {
-    const variantPart = item.variant_name
+    const variantPart   = item.variant_name
       ? `<div class="var">(${item.variant_name})</div>` : "";
-    const addonLines  = item.addons
+    const comboLines    = (item.combo_contents || [])
+      .map((c) => `<div class="combo-line">&middot; ${c.name}${c.quantity > 1 ? ` x${c.quantity}` : ""}</div>`).join("");
+    const addonLines    = item.addons
       .map((a) => `<div class="addon">+ ${a}</div>`).join("");
-    const noteLine    = item.notes
+    const noteLine      = item.notes
       ? `<div class="note">Note: ${item.notes}</div>` : "";
     return `
 <div class="item">
   <span class="qty">${item.quantity}x</span>
   <div class="item-body">
     <div class="item-name">${item.product_name}</div>
-    ${variantPart}${addonLines}${noteLine}
+    ${variantPart}${comboLines}${addonLines}${noteLine}
   </div>
 </div>`;
   }).join("");
@@ -180,6 +182,7 @@ body {
 .item-body { flex: 1; }
 .item-name { font-size: 13px; font-weight: 700; color: #111; line-height: 1.3; }
 .var       { font-size: 11px; color: #666; margin-top: 1px; }
+.combo-line { font-size: 11px; color: #333; padding-left: 6px; margin-top: 2px; font-weight: 600; }
 .addon     { font-size: 11px; color: #555; padding-left: 6px; margin-top: 1px; }
 .note      {
   font-size: 11px; font-weight: 700; color: #c00;
@@ -316,6 +319,15 @@ function Ticket({ order, onComplete, completing }) {
                     <span className="kt-variant"> ({item.variant_name})</span>
                   )}
                 </span>
+                {item.combo_contents && item.combo_contents.length > 0 && (
+                  <div className="kt-combo-contents">
+                    {item.combo_contents.map((c, ci) => (
+                      <span key={ci} className="kt-combo-line">
+                        · {c.name}{c.quantity > 1 ? ` x${c.quantity}` : ""}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {item.addons.length > 0 && (
                   <div className="kt-addons">
                     {item.addons.map((a, ai) => (

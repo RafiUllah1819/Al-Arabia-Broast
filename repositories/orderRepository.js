@@ -320,12 +320,15 @@ export async function getKitchenOrders() {
 
   if (orderIds.length === 0) return [];
 
-  // 2. Items for all those orders
+  // 2. Items for all those orders — include product_id and type for combo detection
   const itemsRes = await query(
-    `SELECT id, order_id, product_name, variant_name, quantity, notes
-     FROM   order_items
-     WHERE  order_id = ANY($1)
-     ORDER  BY order_id ASC, id ASC`,
+    `SELECT oi.id, oi.order_id, oi.product_id, oi.product_name, oi.variant_name,
+            oi.quantity, oi.notes,
+            p.type AS product_type
+     FROM   order_items oi
+     LEFT   JOIN products p ON p.id = oi.product_id
+     WHERE  oi.order_id = ANY($1)
+     ORDER  BY oi.order_id ASC, oi.id ASC`,
     [orderIds]
   );
   const allItems   = itemsRes.rows;
@@ -347,17 +350,50 @@ export async function getKitchenOrders() {
     }
   }
 
-  // Group items by order_id, attach addons
+  // 4. Fetch combo contents for combo-type items
+  const comboProductIds = [...new Set(
+    allItems.filter((i) => i.product_type === "combo" && i.product_id).map((i) => i.product_id)
+  )];
+
+  let comboContentsByProductId = {};
+  if (comboProductIds.length > 0) {
+    const comboRes = await query(
+      `SELECT
+         ci.combo_id,
+         ci.quantity,
+         p.name   AS product_name,
+         pv.name  AS variant_name,
+         coi.name AS combo_only_item_name
+       FROM   combo_items ci
+       LEFT JOIN products          p   ON p.id   = ci.product_id
+       LEFT JOIN product_variants  pv  ON pv.id  = ci.variant_id
+       LEFT JOIN combo_only_items  coi ON coi.id = ci.combo_only_item_id
+       WHERE  ci.combo_id = ANY($1)
+       ORDER  BY ci.combo_id, ci.id ASC`,
+      [comboProductIds]
+    );
+    for (const row of comboRes.rows) {
+      if (!comboContentsByProductId[row.combo_id]) comboContentsByProductId[row.combo_id] = [];
+      const label = row.combo_only_item_name
+        || (row.variant_name ? `${row.product_name} — ${row.variant_name}` : row.product_name);
+      comboContentsByProductId[row.combo_id].push({ name: label, quantity: row.quantity });
+    }
+  }
+
+  // 5. Group items by order_id, attach addons and combo contents
   const itemsByOrder = {};
   for (const item of allItems) {
     if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
     itemsByOrder[item.order_id].push({
-      id:           item.id,
-      product_name: item.product_name,
-      variant_name: item.variant_name || null,
-      quantity:     item.quantity,
-      notes:        item.notes || null,
-      addons:       addonsByItem[item.id] || [],
+      id:             item.id,
+      product_name:   item.product_name,
+      variant_name:   item.variant_name || null,
+      quantity:       item.quantity,
+      notes:          item.notes || null,
+      addons:         addonsByItem[item.id] || [],
+      combo_contents: item.product_type === "combo"
+        ? (comboContentsByProductId[item.product_id] || [])
+        : [],
     });
   }
 
