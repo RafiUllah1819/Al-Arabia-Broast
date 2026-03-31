@@ -12,8 +12,8 @@ const NAV_GROUPS = [
       { label: "Dashboard", href: "/dashboard", icon: "▦" },
       { label: "POS",       href: "/pos",       icon: "🖥" },
       { label: "Kitchen",   href: "/kitchen",   icon: "🍳" },
-      { label: "Orders",    href: "/orders",    icon: "📋" },
       { label: "Payments",  href: "/payments",  icon: "💳" },
+      { label: "Orders",    href: "/orders",    icon: "📋" },
     ],
   },
   {
