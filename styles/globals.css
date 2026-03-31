@@ -1733,9 +1733,9 @@ button {
     gap: 6px;
   }
 
-  /* .pos-product-img-wrap {
-    height: 95px;
-  } */
+  .pos-product-img-wrap {
+    max-width: 183px;
+  }
 
   .pos-product-name {
     font-size: 14px;
@@ -1806,9 +1806,9 @@ button {
     padding: 20px;
   }
 
-  /* .pos-product-img-wrap {
-    height: 110px;
-  } */
+  .pos-product-img-wrap {
+   max-width: 183px;
+  }
 
   .pos-product-name {
     font-size: 15px;
@@ -2283,7 +2283,7 @@ button {
 /* ── POS: product card image ───────────────────────────────────────────────── */
 .pos-product-img-wrap {
   width: 100%;
-  /* height: 85px; */
+  max-width: 183px;
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 4px;
@@ -2293,7 +2293,7 @@ button {
 
 .pos-product-img {
   width: 100%;
-  height: 100%;
+  height: 118px;
   /* object-fit: cover; */
   display: block;
 }
