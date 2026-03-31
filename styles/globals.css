@@ -1414,6 +1414,41 @@ button {
   margin-bottom: 14px;
 }
 
+/* ── Bills summary bar ──────────────────────────────────────────────────────── */
+.bills-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: 16px;
+}
+.bills-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 20px;
+}
+.bills-stat:first-child { padding-left: 0; }
+.bills-stat-label {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.bills-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+.bills-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #e9ecef;
+}
+
 /* ── Order detail modal ─────────────────────────────────────────────────────── */
 .order-meta-grid {
   display: grid;

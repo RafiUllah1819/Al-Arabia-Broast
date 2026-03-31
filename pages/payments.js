@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { printReceipt } from "../lib/receipt";
 
@@ -17,6 +17,29 @@ function fmtDateTime(d) {
   return `${fmtDate(d)} ${fmtTime(d)}`;
 }
 
+// Order status (kitchen workflow)
+const ORDER_STATUS_STYLE = {
+  pending:   { background: "#fff9db", color: "#e67700" },
+  preparing: { background: "#e8f4fd", color: "#1971c2" },
+  ready:     { background: "#f3f0ff", color: "#7048e8" },
+  completed: { background: "#f0fff4", color: "#2f9e44" },
+  cancelled: { background: "#f5f5f5", color: "#aaa"    },
+};
+const ORDER_STATUS_LABEL = {
+  pending:   "Pending",
+  preparing: "Preparing",
+  ready:     "Ready",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+// Payment status
+const PAY_STYLE = {
+  paid:     { background: "#f0fff4", color: "#2f9e44" },
+  unpaid:   { background: "#fff3f3", color: "#e03131" },
+  refunded: { background: "#fff3cd", color: "#b45309" },
+};
+
 const TYPE_STYLE = {
   "dine-in":  { background: "#f0f4ff", color: "#3b5bdb" },
   "takeaway": { background: "#fff8f0", color: "#e67700" },
@@ -24,18 +47,25 @@ const TYPE_STYLE = {
 };
 const TYPE_LABEL = { "dine-in": "Dine In", "takeaway": "Takeaway", "delivery": "Delivery" };
 
-const PAY_STYLE = {
-  paid:     { background: "#f0fff4", color: "#2f9e44" },
-  refunded: { background: "#fff3f3", color: "#e03131" },
-};
+/** Returns a clear payment label like "Paid · Cash", "Unpaid", "Refunded" */
+function paymentLabel(o) {
+  if (!o.payment_status) return { label: "Unpaid", style: PAY_STYLE.unpaid };
+  if (o.payment_status === "paid") {
+    const method = o.payment_method
+      ? ` · ${o.payment_method.charAt(0).toUpperCase() + o.payment_method.slice(1)}`
+      : "";
+    return { label: `Paid${method}`, style: PAY_STYLE.paid };
+  }
+  if (o.payment_status === "refunded") return { label: "Refunded", style: PAY_STYLE.refunded };
+  return { label: o.payment_status, style: {} };
+}
 
-const STATUS_STYLE = {
-  pending:   { background: "#fff9db", color: "#e67700" },
-  preparing: { background: "#e8f4fd", color: "#1971c2" },
-  ready:     { background: "#f3f0ff", color: "#7048e8" },
-  completed: { background: "#f0fff4", color: "#2f9e44" },
-  cancelled: { background: "#f5f5f5", color: "#aaa"    },
-};
+/** Table display: prefer joined table name, fall back to table_number, else "—" */
+function tableDisplay(o) {
+  if (o.table_name)   return o.table_name;
+  if (o.table_number) return `#${o.table_number}`;
+  return "—";
+}
 
 // ── Collect Payment Modal ──────────────────────────────────────────────────────
 
@@ -46,8 +76,8 @@ function CollectPaymentModal({ order, onClose, onCollected }) {
   const [saving,       setSaving]       = useState(false);
   const [error,        setError]        = useState("");
 
-  const total    = parseFloat(order.total);
-  const tendered = parseFloat(cashTendered) || 0;
+  const total     = parseFloat(order.total);
+  const tendered  = parseFloat(cashTendered) || 0;
   const changeDue = method === "cash" ? tendered - total : 0;
 
   async function handleConfirm() {
@@ -64,7 +94,7 @@ function CollectPaymentModal({ order, onClose, onCollected }) {
         body:    JSON.stringify({
           orderId:       order.id,
           paymentMethod: method,
-          cashTendered:  method === "cash" ? tendered   : undefined,
+          cashTendered:  method === "cash" ? tendered      : undefined,
           cardReference: method === "card" ? cardRef.trim() : undefined,
         }),
       });
@@ -180,6 +210,8 @@ function BillDetailModal({ orderId, settings, onClose }) {
     onClose();
   }
 
+  const pay = order ? paymentLabel(order) : null;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -198,7 +230,6 @@ function BillDetailModal({ orderId, settings, onClose }) {
 
           {order && (
             <>
-              {/* Screen view */}
               <div className="order-meta-grid">
                 <div className="order-meta-item">
                   <span className="order-meta-label">Date</span>
@@ -245,10 +276,14 @@ function BillDetailModal({ orderId, settings, onClose }) {
                   <span className="order-meta-value">{order.cashier_name || "—"}</span>
                 </div>
                 <div className="order-meta-item">
-                  <span className="order-meta-label">Status</span>
-                  <span className="badge" style={STATUS_STYLE[order.status]}>
-                    {order.status}
+                  <span className="order-meta-label">Order Status</span>
+                  <span className="badge" style={ORDER_STATUS_STYLE[order.status]}>
+                    {ORDER_STATUS_LABEL[order.status] || order.status}
                   </span>
+                </div>
+                <div className="order-meta-item">
+                  <span className="order-meta-label">Payment</span>
+                  <span className="badge" style={pay.style}>{pay.label}</span>
                 </div>
               </div>
 
@@ -305,20 +340,31 @@ function BillDetailModal({ orderId, settings, onClose }) {
 
               {/* Totals */}
               <div className="order-totals-box">
-                <div className="order-totals-row grand"><span>Total</span><span>Rs. {parseFloat(order.total).toFixed(2)}</span></div>
+                <div className="order-totals-row grand">
+                  <span>Total</span>
+                  <span>Rs. {parseFloat(order.total).toFixed(2)}</span>
+                </div>
               </div>
 
-              {/* Payment */}
+              {/* Payment detail */}
               <p className="order-section-label" style={{ marginTop: "16px" }}>Payment</p>
               <div className="order-payment-box">
                 <div className="order-payment-row">
-                  <span>Method</span>
-                  <span style={{ textTransform: "capitalize", fontWeight: 500 }}>{order.payment_method || "—"}</span>
+                  <span>Status</span>
+                  <span className="badge" style={pay.style}>{pay.label}</span>
                 </div>
-                <div className="order-payment-row">
-                  <span>Amount Paid</span>
-                  <span>Rs. {parseFloat(order.payment_amount || 0).toFixed(2)}</span>
-                </div>
+                {order.payment_method && (
+                  <div className="order-payment-row">
+                    <span>Method</span>
+                    <span style={{ textTransform: "capitalize", fontWeight: 500 }}>{order.payment_method}</span>
+                  </div>
+                )}
+                {order.payment_amount && parseFloat(order.payment_amount) > 0 && (
+                  <div className="order-payment-row">
+                    <span>Amount Paid</span>
+                    <span>Rs. {parseFloat(order.payment_amount).toFixed(2)}</span>
+                  </div>
+                )}
                 {order.payment_method === "cash" && parseFloat(order.change_due || 0) > 0 && (
                   <div className="order-payment-row">
                     <span>Change Given</span>
@@ -331,16 +377,7 @@ function BillDetailModal({ orderId, settings, onClose }) {
                     <span style={{ color: "#888", fontSize: "12px" }}>{order.payment_reference}</span>
                   </div>
                 )}
-                <div className="order-payment-row">
-                  <span>Status</span>
-                  {order.payment_status ? (
-                    <span className="badge" style={PAY_STYLE[order.payment_status]}>{order.payment_status}</span>
-                  ) : (
-                    <span style={{ color: "#aaa", fontSize: "12px" }}>No payment</span>
-                  )}
-                </div>
               </div>
-
             </>
           )}
         </div>
@@ -362,11 +399,11 @@ export default function PaymentsPage() {
   const { user }  = useAuth();
   const isAdmin   = user?.role === "admin" || user?.role === "manager";
 
-  const [orders,     setOrders]     = useState([]);
-  const [settings,   setSettings]   = useState(null);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState("");
-  const [selectedId,     setSelectedId]     = useState(null);
+  const [orders,          setOrders]          = useState([]);
+  const [settings,        setSettings]        = useState(null);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState("");
+  const [selectedId,      setSelectedId]      = useState(null);
   const [collectingOrder, setCollectingOrder] = useState(null);
 
   // Filters
@@ -374,7 +411,6 @@ export default function PaymentsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [payFilter,  setPayFilter]  = useState("");
 
-  // Load settings once for receipt printing
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
@@ -401,7 +437,17 @@ export default function PaymentsPage() {
 
   useEffect(() => { fetchBills(); }, [fetchBills]);
 
-  const total = orders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+  // Summary stats
+  const stats = useMemo(() => {
+    const totalBills  = orders.length;
+    const paidAmount  = orders
+      .filter((o) => o.payment_status === "paid")
+      .reduce((s, o) => s + parseFloat(o.total || 0), 0);
+    const unpaidAmount = orders
+      .filter((o) => !o.payment_status && o.status !== "cancelled")
+      .reduce((s, o) => s + parseFloat(o.total || 0), 0);
+    return { totalBills, paidAmount, unpaidAmount };
+  }, [orders]);
 
   return (
     <div>
@@ -455,12 +501,28 @@ export default function PaymentsPage() {
         </div>
       </div>
 
+      {/* Summary bar */}
       {!loading && !error && (
-        <p className="orders-summary">
-          <strong>{orders.length}</strong> bill{orders.length !== 1 ? "s" : ""}
-          <span style={{ color: "#ddd", margin: "0 8px" }}>|</span>
-          Total: <strong>Rs. {total.toFixed(2)}</strong>
-        </p>
+        <div className="bills-summary-bar">
+          <div className="bills-stat">
+            <span className="bills-stat-label">Total Bills</span>
+            <span className="bills-stat-value">{stats.totalBills}</span>
+          </div>
+          <div className="bills-stat-divider" />
+          <div className="bills-stat">
+            <span className="bills-stat-label">Paid</span>
+            <span className="bills-stat-value" style={{ color: "#2f9e44" }}>
+              Rs. {stats.paidAmount.toFixed(2)}
+            </span>
+          </div>
+          <div className="bills-stat-divider" />
+          <div className="bills-stat">
+            <span className="bills-stat-label">Unpaid</span>
+            <span className="bills-stat-value" style={{ color: stats.unpaidAmount > 0 ? "#e03131" : "#aaa" }}>
+              Rs. {stats.unpaidAmount.toFixed(2)}
+            </span>
+          </div>
+        </div>
       )}
 
       {error && <p className="form-error" style={{ marginBottom: "12px" }}>{error}</p>}
@@ -479,65 +541,66 @@ export default function PaymentsPage() {
                 <th>Waiter</th>
                 {isAdmin && <th>Cashier</th>}
                 <th>Items</th>
-                <th>Total</th>
+                <th style={{ textAlign: "right" }}>Total</th>
                 <th>Payment</th>
-                <th>Status</th>
+                <th>Order</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => (
-                <tr key={o.id}>
-                  <td style={{ fontWeight: 600 }}>{o.order_number}</td>
-                  <td>
-                    <div style={{ fontSize: "12px", color: "#555" }}>{fmtDate(o.created_at)}</div>
-                    <div style={{ fontSize: "11px", color: "#aaa" }}>{fmtTime(o.created_at)}</div>
-                  </td>
-                  <td>
-                    <span className="badge" style={TYPE_STYLE[o.type] || {}}>
-                      {TYPE_LABEL[o.type] || o.type}
-                    </span>
-                  </td>
-                  <td style={{ color: "#555", fontSize: "13px" }}>{o.table_name || "—"}</td>
-                  <td style={{ color: "#555", fontSize: "13px" }}>{o.waiter_name || "—"}</td>
-                  {isAdmin && <td style={{ color: "#555", fontSize: "13px" }}>{o.cashier_name || "—"}</td>}
-                  <td style={{ color: "#888" }}>{o.item_count} item{o.item_count !== 1 ? "s" : ""}</td>
-                  <td style={{ fontWeight: 600 }}>Rs. {parseFloat(o.total).toFixed(2)}</td>
-                  <td>
-                    {o.payment_status ? (
-                      <>
-                        <span className="badge" style={PAY_STYLE[o.payment_status]}>{o.payment_status}</span>
-                        <div style={{ fontSize: "11px", color: "#aaa", marginTop: "2px", textTransform: "capitalize" }}>
-                          {o.payment_method}
-                        </div>
-                      </>
-                    ) : (
-                      <span style={{ color: "#aaa", fontSize: "12px" }}>—</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className="badge" style={STATUS_STYLE[o.status]}>{o.status}</span>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      {!o.payment_status && (
+              {orders.map((o) => {
+                const pay = paymentLabel(o);
+                const canCollect = !o.payment_status && o.status !== "cancelled";
+                return (
+                  <tr key={o.id}>
+                    <td style={{ fontWeight: 600 }}>{o.order_number}</td>
+                    <td>
+                      <div style={{ fontSize: "12px", color: "#555" }}>{fmtDate(o.created_at)}</div>
+                      <div style={{ fontSize: "11px", color: "#aaa" }}>{fmtTime(o.created_at)}</div>
+                    </td>
+                    <td>
+                      <span className="badge" style={TYPE_STYLE[o.type] || {}}>
+                        {TYPE_LABEL[o.type] || o.type}
+                      </span>
+                    </td>
+                    <td style={{ color: "#555", fontSize: "13px" }}>{tableDisplay(o)}</td>
+                    <td style={{ color: "#555", fontSize: "13px" }}>{o.waiter_name || "—"}</td>
+                    {isAdmin && <td style={{ color: "#555", fontSize: "13px" }}>{o.cashier_name || "—"}</td>}
+                    <td style={{ color: "#888" }}>
+                      {o.item_count} item{o.item_count !== 1 ? "s" : ""}
+                    </td>
+                    <td style={{ fontWeight: 600, textAlign: "right" }}>
+                      Rs. {parseFloat(o.total).toFixed(2)}
+                    </td>
+                    <td>
+                      <span className="badge" style={pay.style}>{pay.label}</span>
+                    </td>
+                    <td>
+                      <span className="badge" style={ORDER_STATUS_STYLE[o.status]}>
+                        {ORDER_STATUS_LABEL[o.status] || o.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        {canCollect && (
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => setCollectingOrder(o)}
+                          >
+                            Collect Payment
+                          </button>
+                        )}
                         <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => setCollectingOrder(o)}
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => setSelectedId(o.id)}
                         >
-                          Collect Payment
+                          {o.payment_status === "paid" ? "Reprint" : "View / Print"}
                         </button>
-                      )}
-                      <button
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => setSelectedId(o.id)}
-                      >
-                        View / Print
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {orders.length === 0 && (
                 <tr>
                   <td
