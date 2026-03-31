@@ -420,9 +420,24 @@ button {
   flex-direction: column;
 }
 
+/* form sits between modal-xl and modal-body — must relay the flex chain */
+.modal-xl > form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modal-xl .modal-header,
+.modal-xl .modal-footer {
+  flex-shrink: 0;
+}
+
 .modal-xl .modal-body {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 /* ── Product form three-column grid ──────────────────────────────────────── */
@@ -470,7 +485,8 @@ button {
 .variant-list {
   border: 1px solid #E5E7EB;
   border-radius: 6px;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 220px;
   margin-bottom: 8px;
 }
 
