@@ -21,7 +21,7 @@ export async function getPOSMenu() {
   // 2. Active + available products
   const prodRows = await query(
     `SELECT p.id, p.category_id, p.name, p.type, p.base_price, p.description, p.image_url,
-            c.name AS category_name
+            p.is_kitchen_item, c.name AS category_name
      FROM   products p
      LEFT   JOIN categories c ON c.id = p.category_id
      WHERE  p.is_active = TRUE AND p.is_available = TRUE

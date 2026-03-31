@@ -32,7 +32,7 @@ export function listProducts(filters) {
 }
 
 export async function createProduct(data) {
-  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, sort_order } = data;
+  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, is_kitchen_item, sort_order } = data;
   let   { slug } = data;
 
   if (!name?.trim())               throw new Error("Product name is required.");
@@ -63,14 +63,15 @@ export async function createProduct(data) {
     type,
     base_price:   (type === "simple" || type === "combo") ? parseFloat(base_price) : null,
     image_url:    image_url.trim(),
-    is_available: is_available !== false,
-    is_active:    is_active    !== false,
-    sort_order:   parseInt(sort_order) || 0,
+    is_available:    is_available    !== false,
+    is_active:       is_active       !== false,
+    is_kitchen_item: is_kitchen_item !== false,
+    sort_order:      parseInt(sort_order) || 0,
   });
 }
 
 export async function updateProduct(id, data) {
-  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, sort_order } = data;
+  const { name, barcode, description, category_id, type, base_price, image_url, is_available, is_active, is_kitchen_item, sort_order } = data;
   let   { slug } = data;
 
   if (!name?.trim())               throw new Error("Product name is required.");
@@ -101,9 +102,10 @@ export async function updateProduct(id, data) {
     type,
     base_price:   (type === "simple" || type === "combo") ? parseFloat(base_price) : null,
     image_url:    image_url.trim(),
-    is_available: Boolean(is_available),
-    is_active:    Boolean(is_active),
-    sort_order:   parseInt(sort_order) || 0,
+    is_available:    Boolean(is_available),
+    is_active:       Boolean(is_active),
+    is_kitchen_item: is_kitchen_item !== false,
+    sort_order:      parseInt(sort_order) || 0,
   });
 }
 

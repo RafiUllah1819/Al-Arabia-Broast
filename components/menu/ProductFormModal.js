@@ -5,7 +5,7 @@ const PRODUCT_TYPES = ["simple", "variant", "combo"];
 const EMPTY = {
   name: "", slug: "", barcode: "", description: "", category_id: "",
   type: "simple", base_price: "", sort_order: "0",
-  is_available: true, is_active: true,
+  is_available: true, is_active: true, is_kitchen_item: true,
 };
 
 function toSlug(text) {
@@ -41,9 +41,10 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
         category_id:  product.category_id ? String(product.category_id) : "",
         type:         product.type,
         base_price:   product.base_price != null ? String(product.base_price) : "",
-        sort_order:   String(product.sort_order),
-        is_available: product.is_available,
-        is_active:    product.is_active,
+        sort_order:      String(product.sort_order),
+        is_available:    product.is_available,
+        is_active:       product.is_active,
+        is_kitchen_item: product.is_kitchen_item !== false,
       });
       setImagePreview(product.image_url || "");
       setImageFile(null);
@@ -301,7 +302,7 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                   />
                 </div>
 
-                <div style={{ display: "flex", gap: "16px", marginTop: "4px" }}>
+                <div style={{ display: "flex", gap: "16px", marginTop: "4px", flexWrap: "wrap" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
                     <input type="checkbox" name="is_available" checked={form.is_available} onChange={handleChange} />
                     Available
@@ -309,6 +310,10 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
                     <input type="checkbox" name="is_active" checked={form.is_active} onChange={handleChange} />
                     Active
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
+                    <input type="checkbox" name="is_kitchen_item" checked={form.is_kitchen_item} onChange={handleChange} />
+                    Kitchen Item
                   </label>
                 </div>
               </div>

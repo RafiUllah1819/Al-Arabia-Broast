@@ -103,6 +103,9 @@ export async function placeOrder(payload) {
   const DB_TYPE = { dine_in: "dine-in", takeaway: "takeaway", delivery: "delivery" };
   const dbType  = DB_TYPE[orderType];
 
+  // If all items are non-kitchen, skip the kitchen queue entirely
+  const hasKitchenItems = items.some((i) => i.isKitchenItem !== false);
+
   // ── Transaction ────────────────────────────────────────────────────────────
   return await withTransaction(async (client) => {
     // 1. Order number
@@ -112,6 +115,7 @@ export async function placeOrder(payload) {
     const order = await createOrder(client, {
       orderNumber,
       type:            dbType,
+      status:          hasKitchenItems ? "pending" : "completed",
       subtotal,
       tax,
       total,
@@ -132,14 +136,15 @@ export async function placeOrder(payload) {
       const lineTotal          = round2(baseUnitPrice * item.quantity);
 
       const orderItem = await createOrderItem(client, {
-        orderId:     order.id,
-        productId:   item.productId   || null,
-        variantId:   item.variantId   || null,
-        productName: item.productName,
-        variantName: item.variantName || null,
-        unitPrice:   baseUnitPrice,
-        quantity:    item.quantity,
+        orderId:       order.id,
+        productId:     item.productId   || null,
+        variantId:     item.variantId   || null,
+        productName:   item.productName,
+        variantName:   item.variantName || null,
+        unitPrice:     baseUnitPrice,
+        quantity:      item.quantity,
         lineTotal,
+        isKitchenItem: item.isKitchenItem !== false,
       });
 
       for (const addon of item.addons || []) {
@@ -193,6 +198,9 @@ export async function addItemsToOrder({ orderId, items }) {
     items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
   );
 
+  // Only reset kitchen status if at least one new item needs kitchen prep
+  const hasKitchenItems = items.some((i) => i.isKitchenItem !== false);
+
   return await withTransaction(async (client) => {
     // Verify the order is still open (no payment + not cancelled)
     const check = await client.query(
@@ -219,13 +227,14 @@ export async function addItemsToOrder({ orderId, items }) {
 
       const orderItem = await createOrderItem(client, {
         orderId,
-        productId:   item.productId   || null,
-        variantId:   item.variantId   || null,
-        productName: item.productName,
-        variantName: item.variantName || null,
-        unitPrice:   baseUnitPrice,
-        quantity:    item.quantity,
+        productId:     item.productId   || null,
+        variantId:     item.variantId   || null,
+        productName:   item.productName,
+        variantName:   item.variantName || null,
+        unitPrice:     baseUnitPrice,
+        quantity:      item.quantity,
         lineTotal,
+        isKitchenItem: item.isKitchenItem !== false,
       });
 
       for (const addon of item.addons || []) {
@@ -238,8 +247,8 @@ export async function addItemsToOrder({ orderId, items }) {
       }
     }
 
-    // Update order totals + reset to pending (kitchen sees new items)
-    const updated = await updateOrderTotals(client, { orderId, addSubtotal });
+    // Update order totals; reset to pending only if kitchen items were added
+    const updated = await updateOrderTotals(client, { orderId, addSubtotal, resetKitchenStatus: hasKitchenItems });
     return { order: updated, addedSubtotal: addSubtotal };
   });
 }

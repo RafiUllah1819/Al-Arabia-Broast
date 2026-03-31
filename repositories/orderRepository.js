@@ -19,6 +19,7 @@ export async function generateOrderNumber(client) {
 export async function createOrder(client, {
   orderNumber,
   type,
+  status = "pending",
   subtotal,
   tax,
   total,
@@ -33,13 +34,13 @@ export async function createOrder(client, {
 }) {
   const res = await client.query(
     `INSERT INTO orders
-       (order_number, type, subtotal, tax, total, notes,
+       (order_number, type, status, subtotal, tax, total, notes,
         table_number, table_id, waiter_id,
         customer_name, customer_phone, customer_address, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      RETURNING *`,
     [
-      orderNumber, type, subtotal, tax, total, notes || null,
+      orderNumber, type, status, subtotal, tax, total, notes || null,
       tableNumber || null, tableId || null, waiterId || null,
       customerName || null, customerPhone || null, customerAddress || null, createdBy,
     ]
@@ -56,13 +57,14 @@ export async function createOrderItem(client, {
   unitPrice,
   quantity,
   lineTotal,
+  isKitchenItem = true,
   notes,
 }) {
   const res = await client.query(
     `INSERT INTO order_items
        (order_id, product_id, product_variant_id, product_name, variant_name,
-        unit_price, quantity, line_total, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        unit_price, quantity, line_total, is_kitchen_item, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id`,
     [
       orderId,
@@ -73,6 +75,7 @@ export async function createOrderItem(client, {
       unitPrice,
       quantity,
       lineTotal,
+      isKitchenItem !== false,
       notes          || null,
     ]
   );
@@ -320,7 +323,7 @@ export async function getKitchenOrders() {
 
   if (orderIds.length === 0) return [];
 
-  // 2. Items for all those orders — include product_id and type for combo detection
+  // 2. Items for all those orders — only kitchen items, include product_id and type for combo detection
   const itemsRes = await query(
     `SELECT oi.id, oi.order_id, oi.product_id, oi.product_name, oi.variant_name,
             oi.quantity, oi.notes,
@@ -328,6 +331,7 @@ export async function getKitchenOrders() {
      FROM   order_items oi
      LEFT   JOIN products p ON p.id = oi.product_id
      WHERE  oi.order_id = ANY($1)
+       AND  oi.is_kitchen_item = TRUE
      ORDER  BY oi.order_id ASC, oi.id ASC`,
     [orderIds]
   );
@@ -369,6 +373,7 @@ export async function getKitchenOrders() {
        LEFT JOIN product_variants  pv  ON pv.id  = ci.variant_id
        LEFT JOIN combo_only_items  coi ON coi.id = ci.combo_only_item_id
        WHERE  ci.combo_id = ANY($1)
+         AND  (ci.combo_only_item_id IS NOT NULL OR p.is_kitchen_item = TRUE)
        ORDER  BY ci.combo_id, ci.id ASC`,
       [comboProductIds]
     );
@@ -461,19 +466,27 @@ export async function getOpenOrderByTable(tableId) {
 }
 
 /**
- * Add the cost of newly appended items to an order's subtotal/total,
- * and reset status to 'pending' so the kitchen sees the updated order.
+ * Add the cost of newly appended items to an order's subtotal/total.
+ * Only resets status to 'pending' if resetKitchenStatus is true
+ * (i.e. at least one of the new items is a kitchen item).
  * Must be called inside a transaction (client param).
  */
-export async function updateOrderTotals(client, { orderId, addSubtotal }) {
+export async function updateOrderTotals(client, { orderId, addSubtotal, resetKitchenStatus = true }) {
   const res = await client.query(
-    `UPDATE orders
-     SET subtotal   = subtotal + $1,
-         total      = total    + $1,
-         status     = 'pending',
-         updated_at = NOW()
-     WHERE id = $2
-     RETURNING id, order_number, subtotal, total, status`,
+    resetKitchenStatus
+      ? `UPDATE orders
+         SET subtotal   = subtotal + $1,
+             total      = total    + $1,
+             status     = 'pending',
+             updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, order_number, subtotal, total, status`
+      : `UPDATE orders
+         SET subtotal   = subtotal + $1,
+             total      = total    + $1,
+             updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, order_number, subtotal, total, status`,
     [addSubtotal, orderId]
   );
   return res.rows[0];

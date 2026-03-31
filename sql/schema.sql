@@ -68,10 +68,11 @@ CREATE TABLE IF NOT EXISTS products (
   base_price   NUMERIC(10,2),                  -- NULL for variant type
   image_url    VARCHAR(255) NOT NULL,
   slug         VARCHAR(150)  UNIQUE,
-  is_available BOOLEAN       NOT NULL DEFAULT TRUE,
-  is_active    BOOLEAN       NOT NULL DEFAULT TRUE,
-  sort_order   INTEGER       NOT NULL DEFAULT 0,
-  created_at   TIMESTAMP     NOT NULL DEFAULT NOW()
+  is_available    BOOLEAN       NOT NULL DEFAULT TRUE,
+  is_active       BOOLEAN       NOT NULL DEFAULT TRUE,
+  is_kitchen_item BOOLEAN       NOT NULL DEFAULT TRUE,  -- FALSE = no kitchen prep needed (e.g. bottled drinks)
+  sort_order      INTEGER       NOT NULL DEFAULT 0,
+  created_at      TIMESTAMP     NOT NULL DEFAULT NOW()
 );
 
 
@@ -207,6 +208,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   unit_price         NUMERIC(10,2) NOT NULL,
   quantity           INTEGER       NOT NULL DEFAULT 1,
   line_total         NUMERIC(10,2) NOT NULL,   -- unit_price * quantity (before addons)
+  is_kitchen_item    BOOLEAN       NOT NULL DEFAULT TRUE,  -- snapshot from product at time of order
   notes              TEXT
 );
 

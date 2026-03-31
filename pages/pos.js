@@ -27,16 +27,17 @@ function cartItemKey(product, variant, addons) {
 function buildCartItem(product, variant, addons, quantity, unitPrice) {
   const label = variant ? `${product.name} (${variant.name})` : product.name;
   return {
-    _cartId:     nextCartId++,
-    key:         cartItemKey(product, variant, addons),
-    productId:   product.id,
-    productName: product.name,
-    variantId:   variant ? variant.id   : null,
-    variantName: variant ? variant.name : null,
-    name:        label,
+    _cartId:       nextCartId++,
+    key:           cartItemKey(product, variant, addons),
+    productId:     product.id,
+    productName:   product.name,
+    variantId:     variant ? variant.id   : null,
+    variantName:   variant ? variant.name : null,
+    name:          label,
     addons,
     quantity,
     unitPrice,
+    isKitchenItem: product.is_kitchen_item !== false,
   };
 }
 
@@ -731,12 +732,13 @@ export default function POSPage() {
     const payload = {
       orderId: openOrder.id,
       items: cartItems.map((item) => ({
-        productId:   item.productId,
-        variantId:   item.variantId,
-        productName: item.productName,
-        variantName: item.variantName,
-        unitPrice:   item.unitPrice,
-        quantity:    item.quantity,
+        productId:    item.productId,
+        variantId:    item.variantId,
+        productName:  item.productName,
+        variantName:  item.variantName,
+        unitPrice:    item.unitPrice,
+        quantity:     item.quantity,
+        isKitchenItem: item.isKitchenItem !== false,
         addons: (item.addons || []).map((a) => ({
           addonItemId: a.item_id,
           addonName:   a.item_name,
@@ -782,12 +784,13 @@ export default function POSPage() {
       customerPhone:   orderType === "delivery" ? (ctx.customerPhone   || null) : null,
       customerAddress: orderType === "delivery" ? (ctx.customerAddress || null) : null,
       items: cartItems.map((item) => ({
-        productId:   item.productId,
-        variantId:   item.variantId,
-        productName: item.productName,
-        variantName: item.variantName,
-        unitPrice:   item.unitPrice,
-        quantity:    item.quantity,
+        productId:    item.productId,
+        variantId:    item.variantId,
+        productName:  item.productName,
+        variantName:  item.variantName,
+        unitPrice:    item.unitPrice,
+        quantity:     item.quantity,
+        isKitchenItem: item.isKitchenItem !== false,
         addons: (item.addons || []).map((a) => ({
           addonItemId: a.item_id,
           addonName:   a.item_name,
@@ -828,12 +831,13 @@ export default function POSPage() {
       customerPhone:   orderType === "delivery" ? (ctx.customerPhone   || null) : null,
       customerAddress: orderType === "delivery" ? (ctx.customerAddress || null) : null,
       items: cartItems.map((item) => ({
-        productId:   item.productId,
-        variantId:   item.variantId,
-        productName: item.productName,
-        variantName: item.variantName,
-        unitPrice:   item.unitPrice,
-        quantity:    item.quantity,
+        productId:    item.productId,
+        variantId:    item.variantId,
+        productName:  item.productName,
+        variantName:  item.variantName,
+        unitPrice:    item.unitPrice,
+        quantity:     item.quantity,
+        isKitchenItem: item.isKitchenItem !== false,
         addons: (item.addons || []).map((a) => ({
           addonItemId: a.item_id,
           addonName:   a.item_name,
