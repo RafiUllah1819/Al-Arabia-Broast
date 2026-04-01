@@ -359,12 +359,12 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ── Hourly chart ── */}
-      <HourlyChart data={hourly} />
-
       {/* ── Today's product sales ── */}
       <SectionDivider label="Today's Product Sales" />
       <TodayProductSales rows={todaySales} />
+
+      {/* ── Hourly chart ── */}
+      <HourlyChart data={hourly} />
 
       {/* ── Recent orders ── */}
       <RecentOrders orders={recentOrders} />
