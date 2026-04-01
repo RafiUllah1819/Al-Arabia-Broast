@@ -154,7 +154,7 @@ function TodayProductSales({ rows }) {
   }
 
   return (
-    <div className="dash-cards">
+    <div className="dash-cards-sm">
       {rows.map((r, i) => {
         const name   = r.variant_name
           ? `${r.product_name} — ${r.variant_name}`
@@ -268,7 +268,7 @@ export default function DashboardPage() {
   if (loading) return <div className="placeholder-page"><p style={{ color: "#999" }}>Loading...</p></div>;
   if (error)   return <div className="placeholder-page"><p className="form-error">{error}</p></div>;
 
-  const { stats, hourly, recentOrders, todaySales } = data;
+  const { stats, hourly, recentOrders, todaySales, monthlySales } = data;
 
   const todayProfitIsPos   = parseFloat(stats.today_profit)   >= 0;
   const monthlyProfitIsPos = parseFloat(stats.monthly_profit) >= 0;
@@ -362,6 +362,10 @@ export default function DashboardPage() {
       {/* ── Today's product sales ── */}
       <SectionDivider label="Today's Product Sales" />
       <TodayProductSales rows={todaySales} />
+
+      {/* ── Monthly product sales ── */}
+      <SectionDivider label="This Month's Product Sales" />
+      <TodayProductSales rows={monthlySales} />
 
       {/* ── Hourly chart ── */}
       <HourlyChart data={hourly} />

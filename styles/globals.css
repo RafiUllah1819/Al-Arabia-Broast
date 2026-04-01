@@ -1396,6 +1396,35 @@ button {
   box-shadow: 0 4px 16px rgba(0,0,0,0.07);
 }
 
+/* Smaller product-sales card grid */
+.dash-cards-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.dash-cards-sm .dash-card {
+  padding: 14px 14px 12px;
+  gap: 10px;
+}
+
+.dash-cards-sm .dash-card-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.dash-cards-sm .dash-card-value {
+  font-size: 20px;
+}
+
+.dash-cards-sm .dash-card-label {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
 .dash-card-icon {
   font-size: 22px;
   line-height: 1;

@@ -121,6 +121,27 @@ export async function getTodayProductSales() {
   return res.rows;
 }
 
+/**
+ * All products sold in paid orders this month, grouped by product + variant.
+ * Used on the dashboard "This Month's Product Sales" section.
+ */
+export async function getMonthlyProductSales() {
+  const res = await query(
+    `SELECT
+       oi.product_name,
+       oi.variant_name,
+       SUM(oi.quantity)    AS total_qty,
+       SUM(oi.line_total)  AS total_revenue
+     FROM   order_items oi
+     JOIN   orders   o ON o.id    = oi.order_id
+     JOIN   payments p ON p.order_id = o.id AND p.status = 'paid'
+     WHERE  DATE_TRUNC('month', o.created_at) = DATE_TRUNC('month', CURRENT_DATE)
+     GROUP  BY oi.product_name, oi.variant_name
+     ORDER  BY total_qty DESC, oi.product_name ASC`
+  );
+  return res.rows;
+}
+
 // ── Report queries ────────────────────────────────────────────────────────────
 
 /**

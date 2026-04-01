@@ -4,6 +4,7 @@ import {
   getTodayHourly,
   getRecentOrders,
   getTodayProductSales,
+  getMonthlyProductSales,
 } from "../../../repositories/reportRepository";
 import {
   getTotalExpensesByDate,
@@ -21,11 +22,12 @@ export default async function handler(req, res) {
   const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 
   try {
-    const [stats, hourly, recentOrders, todaySales, todayExpenses, monthlyExpenses] = await Promise.all([
+    const [stats, hourly, recentOrders, todaySales, monthlySales, todayExpenses, monthlyExpenses] = await Promise.all([
       getDashboardStats(),
       getTodayHourly(),
       getRecentOrders(10),
       getTodayProductSales(),
+      getMonthlyProductSales(),
       getTotalExpensesByDate(today),
       getTotalExpensesByRange(monthStart, today),
     ]);
@@ -36,7 +38,7 @@ export default async function handler(req, res) {
     stats.monthly_expenses = monthlyExpenses;
     stats.monthly_profit   = parseFloat(stats.monthly_revenue) - monthlyExpenses;
 
-    return res.status(200).json({ stats, hourly, recentOrders, todaySales });
+    return res.status(200).json({ stats, hourly, recentOrders, todaySales, monthlySales });
   } catch (err) {
     console.error("Dashboard error:", err);
     return res.status(500).json({ error: "Failed to load dashboard data" });
