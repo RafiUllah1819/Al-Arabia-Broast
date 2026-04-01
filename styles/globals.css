@@ -4278,6 +4278,8 @@ button {
 
   .modal-lg {
     width: min(580px, 96vw);
+        background: white;
+    border-radius: 15px;
   }
 
   /* Data tables: allow horizontal scroll on tablet */
@@ -4525,6 +4527,8 @@ button {
     max-height: 92vh;
     display: flex;
     flex-direction: column;
+        background: white;
+    border-radius: 15px;
   }
 
   .modal-lg .modal-body {
