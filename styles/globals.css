@@ -1417,12 +1417,12 @@ button {
 }
 
 .dash-cards-sm .dash-card-value {
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .dash-cards-sm .dash-card-label {
-  font-size: 11px;
-  letter-spacing: 0.4px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
 }
 
 .dash-card-icon {
