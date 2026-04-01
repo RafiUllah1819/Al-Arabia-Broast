@@ -422,6 +422,8 @@ button {
   max-height: 88vh;
   display: flex;
   flex-direction: column;
+      background: white;
+    border-radius: 15px;
 }
 
 .modal-lg .modal-header,
