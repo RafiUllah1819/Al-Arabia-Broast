@@ -2,6 +2,7 @@ import { requireAuth } from "../../../lib/apiAuth";
 import {
   getDailySalesReport,
   getTopProductsReport,
+  getProductSalesReport,
   getPaymentSummaryReport,
   getCashierSalesReport,
 } from "../../../repositories/reportRepository";
@@ -9,6 +10,7 @@ import {
 const REPORT_HANDLERS = {
   daily_sales:     getDailySalesReport,
   top_products:    getTopProductsReport,
+  product_sales:   getProductSalesReport,
   payment_summary: getPaymentSummaryReport,
   cashier_sales:   getCashierSalesReport,
 };

@@ -100,6 +100,27 @@ export async function getRecentOrders(limit = 10) {
   return res.rows;
 }
 
+/**
+ * All products sold in paid orders today, grouped by product + variant.
+ * Used on the dashboard "Today's Product Sales" section.
+ */
+export async function getTodayProductSales() {
+  const res = await query(
+    `SELECT
+       oi.product_name,
+       oi.variant_name,
+       SUM(oi.quantity)    AS total_qty,
+       SUM(oi.line_total)  AS total_revenue
+     FROM   order_items oi
+     JOIN   orders   o ON o.id    = oi.order_id
+     JOIN   payments p ON p.order_id = o.id AND p.status = 'paid'
+     WHERE  DATE(o.created_at) = CURRENT_DATE
+     GROUP  BY oi.product_name, oi.variant_name
+     ORDER  BY total_qty DESC, oi.product_name ASC`
+  );
+  return res.rows;
+}
+
 // ── Report queries ────────────────────────────────────────────────────────────
 
 /**
@@ -142,6 +163,29 @@ export async function getTopProductsReport(from, to) {
      GROUP  BY oi.product_name
      ORDER  BY total_qty DESC
      LIMIT  25`,
+    [from, to]
+  );
+  return res.rows;
+}
+
+/**
+ * All products sold within a date range, grouped by product + variant.
+ * Each variant is its own row (e.g. "Burger — Large" and "Burger — Small"
+ * appear separately). Combos appear as a single product row.
+ */
+export async function getProductSalesReport(from, to) {
+  const res = await query(
+    `SELECT
+       oi.product_name,
+       oi.variant_name,
+       SUM(oi.quantity)    AS total_qty,
+       SUM(oi.line_total)  AS total_revenue
+     FROM   order_items oi
+     JOIN   orders   o ON o.id    = oi.order_id
+     JOIN   payments p ON p.order_id = o.id AND p.status = 'paid'
+     WHERE  DATE(o.created_at) BETWEEN $1 AND $2
+     GROUP  BY oi.product_name, oi.variant_name
+     ORDER  BY total_qty DESC, oi.product_name ASC`,
     [from, to]
   );
   return res.rows;

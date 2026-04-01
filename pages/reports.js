@@ -132,6 +132,62 @@ function DailySalesReport({ rows }) {
   );
 }
 
+// ── Report: Product Sales (by product + variant, date range) ─────────────────
+
+function ProductSalesReport({ rows }) {
+  const maxQty    = Math.max(...rows.map((r) => parseInt(r.total_qty || 0)), 1);
+  const totalQty  = rows.reduce((s, r) => s + parseInt(r.total_qty || 0), 0);
+  const totalRev  = rows.reduce((s, r) => s + parseFloat(r.total_revenue || 0), 0);
+
+  return (
+    <div>
+      {rows.length > 0 && (
+        <div className="report-summary-row">
+          <span><strong>{rows.length}</strong> products</span>
+          <span style={{ color: "#ddd" }}>|</span>
+          <span><strong>{totalQty}</strong> units sold</span>
+          <span style={{ color: "#ddd" }}>|</span>
+          <span>Revenue: <strong>Rs. {fmt(totalRev)}</strong></span>
+        </div>
+      )}
+      <div className="table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th style={{ width: "30px" }}>#</th>
+              <th>Product</th>
+              <th style={{ width: "180px" }}>Qty Sold</th>
+              <th style={{ textAlign: "right" }}>Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? <EmptyRows /> : rows.map((r, i) => {
+              const name = r.variant_name
+                ? `${r.product_name} — ${r.variant_name}`
+                : r.product_name;
+              const qty = parseInt(r.total_qty || 0);
+              const pct = Math.round((qty / maxQty) * 100);
+              return (
+                <tr key={i}>
+                  <td style={{ color: "#aaa", fontSize: "12px" }}>{i + 1}</td>
+                  <td style={{ fontWeight: 500 }}>{name}</td>
+                  <td>
+                    <div className="report-bar-wrap">
+                      <div className="report-bar" style={{ width: `${pct}%` }} />
+                      <span className="report-bar-label">{qty}</span>
+                    </div>
+                  </td>
+                  <td style={{ textAlign: "right", fontWeight: 600 }}>Rs. {fmt(r.total_revenue)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ── Report: Top Products ──────────────────────────────────────────────────────
 
 function TopProductsReport({ rows }) {
@@ -386,6 +442,7 @@ function ExportTab({ from, to }) {
 const TABS = [
   { key: "daily_sales",     label: "Daily Sales"      },
   { key: "top_products",    label: "Top Products"     },
+  { key: "product_sales",   label: "Product Sales"    },
   { key: "payment_summary", label: "Payment Summary"  },
   { key: "cashier_sales",   label: "Cashier Sales"    },
   { key: "export",          label: "Export / Backup"  },
@@ -394,6 +451,7 @@ const TABS = [
 const REPORT_COMPONENTS = {
   daily_sales:     DailySalesReport,
   top_products:    TopProductsReport,
+  product_sales:   ProductSalesReport,
   payment_summary: PaymentSummaryReport,
   cashier_sales:   CashierSalesReport,
   export:          null, // rendered separately — does not use the rows/fetch flow

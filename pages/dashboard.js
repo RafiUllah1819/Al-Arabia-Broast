@@ -137,6 +137,47 @@ function HourlyChart({ data }) {
   );
 }
 
+// ── Today's product sales ─────────────────────────────────────────────────────
+
+function TodayProductSales({ rows }) {
+  const totalQty = rows.reduce((s, r) => s + parseInt(r.total_qty || 0), 0);
+
+  return (
+    <div className="dash-chart-wrap">
+      <div className="dash-product-sales-header">
+        <p className="dash-section-title" style={{ padding: 0, margin: 0 }}>Today's Product Sales</p>
+        {rows.length > 0 && (
+          <span className="dash-product-sales-meta">
+            {rows.length} product{rows.length !== 1 ? "s" : ""} · {totalQty} units sold
+          </span>
+        )}
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="dash-product-empty">No paid orders yet today.</p>
+      ) : (
+        <div className="dash-product-list">
+          {rows.map((r, i) => {
+            const name = r.variant_name
+              ? `${r.product_name} — ${r.variant_name}`
+              : r.product_name;
+            const qty = parseInt(r.total_qty || 0);
+            const rev = parseFloat(r.total_revenue || 0);
+            return (
+              <div key={i} className="dash-product-row">
+                <span className="dash-product-rank">{i + 1}</span>
+                <span className="dash-product-name">{name}</span>
+                <span className="dash-product-rev">Rs.&nbsp;{fmt(rev)}</span>
+                <span className="dash-product-qty">×{qty}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Recent orders table ───────────────────────────────────────────────────────
 
 function RecentOrders({ orders }) {
@@ -228,7 +269,7 @@ export default function DashboardPage() {
   if (loading) return <div className="placeholder-page"><p style={{ color: "#999" }}>Loading...</p></div>;
   if (error)   return <div className="placeholder-page"><p className="form-error">{error}</p></div>;
 
-  const { stats, hourly, recentOrders } = data;
+  const { stats, hourly, recentOrders, todaySales } = data;
 
   const todayProfitIsPos   = parseFloat(stats.today_profit)   >= 0;
   const monthlyProfitIsPos = parseFloat(stats.monthly_profit) >= 0;
@@ -321,6 +362,10 @@ export default function DashboardPage() {
 
       {/* ── Hourly chart ── */}
       <HourlyChart data={hourly} />
+
+      {/* ── Today's product sales ── */}
+      <SectionDivider label="Today's Product Sales" />
+      <TodayProductSales rows={todaySales} />
 
       {/* ── Recent orders ── */}
       <RecentOrders orders={recentOrders} />

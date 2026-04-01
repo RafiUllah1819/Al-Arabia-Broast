@@ -223,7 +223,7 @@ function OrderContextPanel({
     return (
       <div className="pos-context-panel">
         <div className="pos-context-row">
-          <label className="pos-context-label">Customer Name</label>
+          <label className="pos-context-label  me-1">Customer Name</label>
           <input
             className="form-input pos-context-input"
             placeholder="Full name"
@@ -232,7 +232,7 @@ function OrderContextPanel({
           />
         </div>
         <div className="pos-context-row">
-          <label className="pos-context-label">Phone</label>
+          <label className="pos-context-label me-1">Phone</label>
           <input
             className="form-input pos-context-input"
             placeholder="+1 234 567 890"
@@ -241,7 +241,7 @@ function OrderContextPanel({
           />
         </div>
         <div className="pos-context-row">
-          <label className="pos-context-label">Address <span style={{ color: "#EF4444" }}>*</span></label>
+          <label className="pos-context-label me">Address <span style={{ color: "#EF4444" }}>*</span></label>
           <input
             className="form-input pos-context-input"
             placeholder="Delivery address"
