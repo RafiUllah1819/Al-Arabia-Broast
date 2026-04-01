@@ -274,6 +274,7 @@ export default function OrdersPage() {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  const [clearing,   setClearing]   = useState(false);
 
   // Filters
   const [dateFilter, setDateFilter] = useState("today");
@@ -300,6 +301,22 @@ export default function OrdersPage() {
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
+  async function handleClearData() {
+    if (!confirm("This will permanently delete ALL orders, order items, and payments. Tables will be reset to available.\n\nAre you sure?")) return;
+    setClearing(true);
+    setError("");
+    try {
+      const res  = await fetch("/api/admin/clear-data", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to clear data."); return; }
+      setOrders([]);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setClearing(false);
+    }
+  }
+
   const shownTotal = orders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
 
   return (
@@ -313,7 +330,19 @@ export default function OrdersPage() {
             </span>
           )}
         </h1>
-        <button className="btn btn-secondary" onClick={fetchOrders}>Refresh</button>
+        <div className="page-header-actions">
+          <button className="btn btn-secondary" onClick={fetchOrders}>Refresh</button>
+          {user?.role === "admin" && (
+            <button
+              className="btn"
+              style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
+              onClick={handleClearData}
+              disabled={clearing}
+            >
+              {clearing ? "Clearing..." : "Clear All Data"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter bar */}
