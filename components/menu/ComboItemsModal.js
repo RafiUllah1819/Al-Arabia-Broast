@@ -112,18 +112,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
     if (!res.ok) { setError(data.error); return; }
     fetchItems();
     setSelected("");
-    setQty("1");
-  }
-
-  async function handleUpdateQty(item, newQty) {
-    const res = await fetch(`/api/combo-items/${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quantity: parseInt(newQty) }),
-    });
-    if (res.ok) {
-      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantity: parseInt(newQty) } : i)));
-    }
   }
 
   async function handleRemove(id) {
@@ -208,7 +196,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
               <thead>
                 <tr>
                   <th>Item</th>
-                  <th style={{ width: "90px" }}>Qty</th>
                   <th>Remove</th>
                 </tr>
               </thead>
@@ -226,16 +213,6 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                         )}
                       </td>
                       <td>
-                        <input
-                          className="form-input"
-                          type="number"
-                          min="1"
-                          style={{ padding: "4px 8px", width: "70px" }}
-                          value={item.quantity}
-                          onChange={(e) => handleUpdateQty(item, e.target.value)}
-                        />
-                      </td>
-                      <td>
                         <button
                           className="btn btn-sm"
                           style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
@@ -249,7 +226,7 @@ export default function ComboItemsModal({ product, allProducts, categories, onCl
                 })}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={3} style={{ textAlign: "center", color: "#bbb", padding: "20px" }}>
+                    <td colSpan={2} style={{ textAlign: "center", color: "#bbb", padding: "20px" }}>
                       No items in this combo yet.
                     </td>
                   </tr>
