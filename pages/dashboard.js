@@ -223,6 +223,20 @@ export default function DashboardPage() {
           accent={stats.kitchen_pending > 0 ? "#F59E0B" : "#22C55E"}
           icon="🍳"
         />
+        <StatCard
+          label="Today's Expenses"
+          value={`Rs. ${fmtK(stats.today_expenses)}`}
+          sub="All expense entries today"
+          accent="#F59E0B"
+          icon="💸"
+        />
+        <StatCard
+          label="Est. Profit Today"
+          value={`Rs. ${fmtK(stats.today_profit)}`}
+          sub="Revenue minus expenses"
+          accent={parseFloat(stats.today_profit) >= 0 ? "#22C55E" : "#EF4444"}
+          icon={parseFloat(stats.today_profit) >= 0 ? "↑" : "↓"}
+        />
       </div>
 
       {/* Hourly chart */}

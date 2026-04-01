@@ -3234,6 +3234,118 @@ button {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   EXPENSES
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Filter bar used on Expenses + Profit/Loss pages */
+.filter-bar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-input {
+  min-width: 140px;
+}
+
+/* Summary strip above the table */
+.expense-summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.expense-summary-label { font-weight: 500; }
+.expense-summary-total { color: #111827; font-weight: 600; }
+
+/* ── btn-danger ─────────────────────────────────────────────────────────────── */
+.btn-danger {
+  background: #FEF2F2;
+  color: #EF4444;
+  border: 1px solid #FECACA;
+}
+
+.btn-danger:hover {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PROFIT / LOSS PAGE
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Two-column layout: daily table left, category chart right */
+.pl-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Category breakdown rows */
+.pl-cat-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto auto;
+  gap: 2px 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.pl-cat-row:last-child { border-bottom: none; }
+
+.pl-cat-info {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pl-cat-name  { font-size: 14px; font-weight: 600; color: #111827; }
+.pl-cat-count { font-size: 12px; color: #9CA3AF; }
+.pl-cat-amount { font-size: 14px; font-weight: 700; color: #F59E0B; white-space: nowrap; align-self: center; }
+.pl-cat-pct    { font-size: 12px; color: #9CA3AF; align-self: center; min-width: 32px; text-align: right; }
+
+.pl-cat-bar-wrap {
+  grid-column: 1 / -1;
+  height: 6px;
+  background: #F3F4F6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pl-cat-bar {
+  height: 100%;
+  background: #F59E0B;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    RESPONSIVE — TABLET & MOBILE
 
    Breakpoints:
@@ -3375,6 +3487,42 @@ button {
   .pos-cart {
     width: 300px;
   }
+
+  /* POS: category tabs — single scrollable row, no wrapping */
+  .pos-cat-tabs {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .pos-cat-tab {
+    font-size: 13px;
+    padding: 7px 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* POS: bigger product grid cells on tablet */
+  .pos-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  /* POS: larger small qty buttons for touch targets */
+  .pos-qty-btn.sm {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* POS: more comfortable cart item rows */
+  .pos-cart-item {
+    padding: 10px 14px;
+  }
+
+  /* POS: taller order-type buttons */
+  .pos-order-type-btn {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -3497,10 +3645,20 @@ button {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
     padding: 10px;
+    /* Extra bottom space so last row clears the floating cart button */
+    padding-bottom: 90px;
   }
 
   .pos-product-card {
     padding: 10px;
+  }
+
+  .pos-product-name {
+    font-size: 12px;
+  }
+
+  .pos-product-price {
+    font-size: 12px;
   }
 
   /* Cart drawer: fixed to bottom, hidden off-screen by default */
@@ -3599,6 +3757,12 @@ button {
     opacity: 0.88;
   }
 
+  /* Context panel: compact on mobile */
+  .pos-context-panel {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
   /* Larger qty controls for touch */
   .pos-qty-btn {
     width: 34px;
@@ -3666,5 +3830,20 @@ button {
   .dash-cards {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+  }
+
+  /* ── Expenses / Profit-Loss mobile ───────────────────────────────────────── */
+
+  .filter-bar {
+    gap: 8px;
+  }
+
+  .filter-input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .pl-grid {
+    grid-template-columns: 1fr;
   }
 }

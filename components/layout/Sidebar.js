@@ -19,11 +19,13 @@ const NAV_GROUPS = [
   {
     section: "Management",
     links: [
-      { label: "Menu",     href: "/menu",     icon: "📖" },
-      { label: "Tables",   href: "/tables",   icon: "🪑" },
-      { label: "Reports",  href: "/reports",  icon: "📊" },
-      { label: "Staff",    href: "/staff",    icon: "👥" },
-      { label: "Settings", href: "/settings", icon: "⚙" },
+      { label: "Menu",        href: "/menu",        icon: "📖" },
+      { label: "Tables",      href: "/tables",      icon: "🪑" },
+      { label: "Expenses",    href: "/expenses",    icon: "💸" },
+      { label: "Profit/Loss", href: "/profit-loss", icon: "📈" },
+      { label: "Reports",     href: "/reports",     icon: "📊" },
+      { label: "Staff",       href: "/staff",       icon: "👥" },
+      { label: "Settings",    href: "/settings",    icon: "⚙" },
     ],
   },
 ];

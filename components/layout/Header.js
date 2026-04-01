@@ -1,15 +1,17 @@
 import { useAuth } from "../../contexts/AuthContext";
 
 const PAGE_TITLES = {
-  "/dashboard": "Dashboard",
-  "/pos":       "Point of Sale",
-  "/orders":    "Orders",
-  "/kitchen":   "Kitchen Board",
-  "/payments":  "Payments",
-  "/menu":      "Menu Management",
-  "/reports":   "Reports",
-  "/users":     "Users",
-  "/settings":  "Settings",
+  "/dashboard":   "Dashboard",
+  "/pos":         "Point of Sale",
+  "/orders":      "Orders",
+  "/kitchen":     "Kitchen Board",
+  "/payments":    "Payments",
+  "/menu":        "Menu Management",
+  "/reports":     "Reports",
+  "/expenses":    "Expenses",
+  "/profit-loss": "Profit / Loss",
+  "/users":       "Users",
+  "/settings":    "Settings",
 };
 
 // Color for each role badge in the header
