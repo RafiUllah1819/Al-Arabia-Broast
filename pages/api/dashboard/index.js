@@ -4,7 +4,10 @@ import {
   getTodayHourly,
   getRecentOrders,
 } from "../../../repositories/reportRepository";
-import { getTotalExpensesByDate } from "../../../repositories/expenseRepository";
+import {
+  getTotalExpensesByDate,
+  getTotalExpensesByRange,
+} from "../../../repositories/expenseRepository";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
@@ -12,19 +15,24 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res, ["admin", "manager"]);
   if (!user) return;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const d          = new Date();
+  const today      = d.toISOString().slice(0, 10);
+  const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 
   try {
-    const [stats, hourly, recentOrders, todayExpenses] = await Promise.all([
+    const [stats, hourly, recentOrders, todayExpenses, monthlyExpenses] = await Promise.all([
       getDashboardStats(),
       getTodayHourly(),
       getRecentOrders(10),
       getTotalExpensesByDate(today),
+      getTotalExpensesByRange(monthStart, today),
     ]);
 
-    // Attach expense/profit figures to the stats object
-    stats.today_expenses = todayExpenses;
-    stats.today_profit   = parseFloat(stats.today_revenue) - todayExpenses;
+    // Attach all four financial figures to the stats object
+    stats.today_expenses   = todayExpenses;
+    stats.today_profit     = parseFloat(stats.today_revenue)   - todayExpenses;
+    stats.monthly_expenses = monthlyExpenses;
+    stats.monthly_profit   = parseFloat(stats.monthly_revenue) - monthlyExpenses;
 
     return res.status(200).json({ stats, hourly, recentOrders });
   } catch (err) {

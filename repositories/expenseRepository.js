@@ -2,23 +2,60 @@ import { query, withTransaction } from "../lib/db";
 
 // ── Categories ────────────────────────────────────────────────────────────────
 
-export async function listCategories() {
+/**
+ * List categories.
+ * @param {boolean} activeOnly  When true, returns only is_active = TRUE rows.
+ *                              Default false (management page needs all).
+ */
+export async function listCategories({ activeOnly = false } = {}) {
   const res = await query(
-    `SELECT id, name, sort_order
-     FROM   expense_categories
-     ORDER  BY sort_order, name`
+    `SELECT
+       ec.id,
+       ec.name,
+       ec.sort_order,
+       ec.is_active,
+       ec.created_at,
+       COUNT(e.id)::INTEGER AS expense_count
+     FROM   expense_categories ec
+     LEFT   JOIN expenses e ON e.category_id = ec.id
+     ${activeOnly ? "WHERE ec.is_active = TRUE" : ""}
+     GROUP  BY ec.id
+     ORDER  BY ec.sort_order, ec.name`
   );
   return res.rows;
 }
 
-export async function createCategory(client, { name }) {
+export async function createCategory(client, { name, sortOrder = 0 }) {
   const res = await client.query(
-    `INSERT INTO expense_categories (name)
-     VALUES ($1)
+    `INSERT INTO expense_categories (name, sort_order)
+     VALUES ($1, $2)
      RETURNING *`,
-    [name.trim()]
+    [name.trim(), sortOrder]
   );
   return res.rows[0];
+}
+
+export async function updateCategory(client, id, { name, sortOrder }) {
+  const res = await client.query(
+    `UPDATE expense_categories
+     SET  name       = $1,
+          sort_order = $2
+     WHERE id = $3
+     RETURNING *`,
+    [name.trim(), sortOrder ?? 0, id]
+  );
+  return res.rows[0] || null;
+}
+
+export async function setCategoryActive(client, id, isActive) {
+  const res = await client.query(
+    `UPDATE expense_categories
+     SET  is_active = $1
+     WHERE id = $2
+     RETURNING *`,
+    [isActive, id]
+  );
+  return res.rows[0] || null;
 }
 
 // ── Expenses ──────────────────────────────────────────────────────────────────
@@ -117,6 +154,20 @@ export async function getTotalExpensesByDate(date) {
      FROM   expenses
      WHERE  expense_date = $1`,
     [date]
+  );
+  return parseFloat(res.rows[0].total);
+}
+
+/**
+ * Total expenses across a date range (both ends inclusive).
+ * Returns a plain number.
+ */
+export async function getTotalExpensesByRange(from, to) {
+  const res = await query(
+    `SELECT COALESCE(SUM(amount), 0) AS total
+     FROM   expenses
+     WHERE  expense_date BETWEEN $1 AND $2`,
+    [from, to]
   );
   return parseFloat(res.rows[0].total);
 }

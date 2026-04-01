@@ -21,7 +21,8 @@ const NAV_GROUPS = [
     links: [
       { label: "Menu",        href: "/menu",        icon: "📖" },
       { label: "Tables",      href: "/tables",      icon: "🪑" },
-      { label: "Expenses",    href: "/expenses",    icon: "💸" },
+      { label: "Expenses",    href: "/expenses",            icon: "💸" },
+      { label: "Exp. Categories", href: "/expense-categories", icon: "🏷" },
       { label: "Profit/Loss", href: "/profit-loss", icon: "📈" },
       { label: "Reports",     href: "/reports",     icon: "📊" },
       { label: "Staff",       href: "/staff",       icon: "👥" },

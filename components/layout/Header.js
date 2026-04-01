@@ -8,8 +8,9 @@ const PAGE_TITLES = {
   "/payments":    "Payments",
   "/menu":        "Menu Management",
   "/reports":     "Reports",
-  "/expenses":    "Expenses",
-  "/profit-loss": "Profit / Loss",
+  "/expenses":            "Expenses",
+  "/expense-categories":  "Expense Categories",
+  "/profit-loss":         "Profit / Loss",
   "/users":       "Users",
   "/settings":    "Settings",
 };

@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmt(n)     { return parseFloat(n || 0).toFixed(2); }
-function fmtK(n)    { const v = parseFloat(n || 0); return v >= 1000 ? `${(v/1000).toFixed(1)}k` : fmt(v); }
+function fmt(n)  { return parseFloat(n || 0).toFixed(2); }
+function fmtK(n) {
+  const v = parseFloat(n || 0);
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000)     return `${(v / 1_000).toFixed(1)}k`;
+  return fmt(v);
+}
 
 function fmtTime(dateStr) {
   return new Date(dateStr).toLocaleTimeString("en-US", {
@@ -29,7 +34,9 @@ const PAY_STYLE = {
 function StatCard({ label, value, sub, accent, icon }) {
   return (
     <div className="dash-card" style={{ borderTop: `3px solid ${accent}` }}>
-      <div className="dash-card-icon" style={{ color: accent, background: `${accent}18` }}>{icon}</div>
+      <div className="dash-card-icon" style={{ color: accent, background: `${accent}18` }}>
+        {icon}
+      </div>
       <div className="dash-card-body">
         <p className="dash-card-label">{label}</p>
         <p className="dash-card-value">{value}</p>
@@ -39,14 +46,65 @@ function StatCard({ label, value, sub, accent, icon }) {
   );
 }
 
+// ── Finance card (Today / Monthly pair) ───────────────────────────────────────
+// Slightly richer card used in the Financial Summary section.
+// Shows expenses + profit side-by-side within one card per period.
+
+function FinanceCard({ period, expenses, profit, revenue }) {
+  const isProfit    = parseFloat(profit) >= 0;
+  const profitColor = isProfit ? "#22C55E" : "#EF4444";
+  const profitBg    = isProfit ? "#F0FDF4" : "#FEF2F2";
+  const margin      = parseFloat(revenue) > 0
+    ? `${((parseFloat(profit) / parseFloat(revenue)) * 100).toFixed(1)}% margin`
+    : null;
+
+  return (
+    <div className="dash-finance-card">
+      <p className="dash-finance-period">{period}</p>
+      <div className="dash-finance-row">
+        {/* Expenses */}
+        <div className="dash-finance-col">
+          <p className="dash-finance-label">Expenses</p>
+          <p className="dash-finance-amount" style={{ color: "#F59E0B" }}>
+            Rs.&nbsp;{fmtK(expenses)}
+          </p>
+        </div>
+
+        <div className="dash-finance-divider" />
+
+        {/* Profit / Loss */}
+        <div className="dash-finance-col" style={{ background: profitBg, borderRadius: 8, padding: "10px 14px" }}>
+          <p className="dash-finance-label" style={{ color: profitColor }}>
+            {isProfit ? "Est. Profit" : "Est. Loss"}
+          </p>
+          <p className="dash-finance-amount" style={{ color: profitColor }}>
+            {isProfit ? "+" : "−"}&nbsp;Rs.&nbsp;{fmtK(Math.abs(parseFloat(profit)))}
+          </p>
+          {margin && (
+            <p className="dash-finance-sub">{margin}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Section divider ───────────────────────────────────────────────────────────
+
+function SectionDivider({ label }) {
+  return (
+    <div className="dash-section-divider">
+      <span className="dash-section-divider-label">{label}</span>
+    </div>
+  );
+}
+
 // ── Hourly bar chart (CSS only, no library) ───────────────────────────────────
 
 function HourlyChart({ data }) {
-  // Fill all business hours 6-23 even if no orders that hour
-  const hours = Array.from({ length: 18 }, (_, i) => i + 6);
+  const hours  = Array.from({ length: 18 }, (_, i) => i + 6);
   const byHour = {};
   for (const d of data) byHour[d.hour] = d;
-
   const maxRev = Math.max(...data.map((d) => parseFloat(d.revenue || 0)), 1);
 
   return (
@@ -54,12 +112,16 @@ function HourlyChart({ data }) {
       <p className="dash-section-title">Today's Hourly Revenue</p>
       <div className="dash-chart">
         {hours.map((h) => {
-          const row = byHour[h];
-          const rev = row ? parseFloat(row.revenue || 0) : 0;
-          const pct = Math.round((rev / maxRev) * 100);
+          const row     = byHour[h];
+          const rev     = row ? parseFloat(row.revenue || 0) : 0;
+          const pct     = Math.round((rev / maxRev) * 100);
           const label12 = h === 12 ? "12pm" : h < 12 ? `${h}am` : `${h - 12}pm`;
           return (
-            <div key={h} className="dash-bar-col" title={rev > 0 ? `Rs. ${fmt(rev)} (${row?.order_count} orders)` : "No orders"}>
+            <div
+              key={h}
+              className="dash-bar-col"
+              title={rev > 0 ? `Rs. ${fmt(rev)} (${row?.order_count} orders)` : "No orders"}
+            >
               <div className="dash-bar-outer">
                 <div
                   className="dash-bar-inner"
@@ -81,7 +143,10 @@ function RecentOrders({ orders }) {
   return (
     <div className="dash-chart-wrap" style={{ padding: "20px 0 0" }}>
       <p className="dash-section-title" style={{ padding: "0 24px" }}>Recent Orders</p>
-      <div className="table-container" style={{ borderRadius: 0, border: "none", boxShadow: "none", borderTop: "1px solid #ebebeb" }}>
+      <div
+        className="table-container"
+        style={{ borderRadius: 0, border: "none", boxShadow: "none", borderTop: "1px solid #ebebeb" }}
+      >
         <table className="data-table">
           <thead>
             <tr>
@@ -108,13 +173,16 @@ function RecentOrders({ orders }) {
                   <td style={{ color: "#6B7280", fontSize: "13px" }}>{fmtTime(o.created_at)}</td>
                   <td style={{ color: "#555" }}>{o.cashier_name || "—"}</td>
                   <td>
-                    <span className="badge" style={
-                      o.type === "dine-in"
-                        ? { background: "#EFF6FF", color: "#3B82F6" }
-                        : o.type === "delivery"
-                        ? { background: "#f3f0ff", color: "#7048e8" }
-                        : { background: "#fff8f0", color: "#e67700" }
-                    }>
+                    <span
+                      className="badge"
+                      style={
+                        o.type === "dine-in"
+                          ? { background: "#EFF6FF", color: "#3B82F6" }
+                          : o.type === "delivery"
+                          ? { background: "#f3f0ff", color: "#7048e8" }
+                          : { background: "#fff8f0", color: "#e67700" }
+                      }
+                    >
                       {o.type === "dine-in" ? "Dine In" : o.type === "delivery" ? "Delivery" : "Takeaway"}
                     </span>
                   </td>
@@ -139,7 +207,6 @@ function RecentOrders({ orders }) {
   );
 }
 
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -163,16 +230,21 @@ export default function DashboardPage() {
 
   const { stats, hourly, recentOrders } = data;
 
+  const todayProfitIsPos   = parseFloat(stats.today_profit)   >= 0;
+  const monthlyProfitIsPos = parseFloat(stats.monthly_profit) >= 0;
+
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <span style={{ fontSize: "13px", color: "#6B7280", fontWeight: 500 }}>
-          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long", month: "long", day: "numeric", year: "numeric",
+          })}
         </span>
       </div>
 
-      {/* Stat cards */}
+      {/* ── Operations cards (7) ── */}
       <div className="dash-cards">
         <StatCard
           label="Today's Revenue"
@@ -198,7 +270,11 @@ export default function DashboardPage() {
         <StatCard
           label="Paid Orders"
           value={parseInt(stats.paid_orders)}
-          sub={`${parseInt(stats.total_orders) > 0 ? Math.round((parseInt(stats.paid_orders) / parseInt(stats.total_orders)) * 100) : 0}% of today's orders`}
+          sub={`${
+            parseInt(stats.total_orders) > 0
+              ? Math.round((parseInt(stats.paid_orders) / parseInt(stats.total_orders)) * 100)
+              : 0
+          }% of today's orders`}
           accent="#22C55E"
           icon="✓"
         />
@@ -223,26 +299,30 @@ export default function DashboardPage() {
           accent={stats.kitchen_pending > 0 ? "#F59E0B" : "#22C55E"}
           icon="🍳"
         />
-        <StatCard
-          label="Today's Expenses"
-          value={`Rs. ${fmtK(stats.today_expenses)}`}
-          sub="All expense entries today"
-          accent="#F59E0B"
-          icon="💸"
+      </div>
+
+      {/* ── Financial Summary section ── */}
+      <SectionDivider label="Financial Summary" />
+
+      <div className="dash-finance-grid">
+        <FinanceCard
+          period="Today"
+          expenses={stats.today_expenses}
+          profit={stats.today_profit}
+          revenue={stats.today_revenue}
         />
-        <StatCard
-          label="Est. Profit Today"
-          value={`Rs. ${fmtK(stats.today_profit)}`}
-          sub="Revenue minus expenses"
-          accent={parseFloat(stats.today_profit) >= 0 ? "#22C55E" : "#EF4444"}
-          icon={parseFloat(stats.today_profit) >= 0 ? "↑" : "↓"}
+        <FinanceCard
+          period="This Month"
+          expenses={stats.monthly_expenses}
+          profit={stats.monthly_profit}
+          revenue={stats.monthly_revenue}
         />
       </div>
 
-      {/* Hourly chart */}
+      {/* ── Hourly chart ── */}
       <HourlyChart data={hourly} />
 
-      {/* Recent orders */}
+      {/* ── Recent orders ── */}
       <RecentOrders orders={recentOrders} />
     </div>
   );

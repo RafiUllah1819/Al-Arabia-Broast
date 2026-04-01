@@ -2,6 +2,8 @@ import { withTransaction } from "../lib/db";
 import {
   listCategories,
   createCategory,
+  updateCategory,
+  setCategoryActive,
   listExpenses,
   createExpense,
   updateExpense,
@@ -14,13 +16,25 @@ import { getDailySalesReport } from "../repositories/reportRepository";
 
 // ── Categories ────────────────────────────────────────────────────────────────
 
-export async function getCategories() {
-  return listCategories();
+/** activeOnly=true for expense dropdowns; false for the management page. */
+export async function getCategories({ activeOnly = false } = {}) {
+  return listCategories({ activeOnly });
 }
 
-export async function addCategory({ name }) {
+export async function addCategory({ name, sortOrder }) {
   if (!name?.trim()) throw new Error("Category name is required.");
-  return withTransaction((client) => createCategory(client, { name }));
+  return withTransaction((client) => createCategory(client, { name, sortOrder }));
+}
+
+export async function editCategory(id, { name, sortOrder }) {
+  if (!id)           throw new Error("Category ID is required.");
+  if (!name?.trim()) throw new Error("Category name is required.");
+  return withTransaction((client) => updateCategory(client, id, { name, sortOrder }));
+}
+
+export async function toggleCategory(id, isActive) {
+  if (!id) throw new Error("Category ID is required.");
+  return withTransaction((client) => setCategoryActive(client, id, isActive));
 }
 
 // ── Expenses ──────────────────────────────────────────────────────────────────
@@ -87,6 +101,35 @@ export async function removeExpense(id) {
 }
 
 // ── Profit / Loss ─────────────────────────────────────────────────────────────
+
+/**
+ * Fixed snapshot: today + this month summaries.
+ * Called unconditionally so the top cards always reflect current state,
+ * independent of whatever date-range filter is selected below.
+ */
+export async function getSummaryStats() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const d        = new Date();
+  const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+
+  const [todayResult, monthRange] = await Promise.all([
+    getDailyProfitLoss(todayStr),
+    getRangeProfitLoss(monthStr, todayStr),
+  ]);
+
+  return {
+    today: {
+      sales:    todayResult.sales,
+      expenses: todayResult.expenses,
+      profit:   todayResult.profit,
+    },
+    month: {
+      sales:    monthRange.totals.sales,
+      expenses: monthRange.totals.expenses,
+      profit:   monthRange.totals.profit,
+    },
+  };
+}
 
 /**
  * Daily profit/loss for a single date.

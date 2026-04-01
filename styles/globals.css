@@ -235,6 +235,12 @@ button {
   line-height: 1.2;
 }
 
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -672,6 +678,12 @@ button {
   color: #EF4444;
   font-size: 12px;
   margin: 0;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 4px 0 0;
 }
 
 /* ── POS Layout ────────────────────────────────────────────────────────────── */
@@ -1415,6 +1427,105 @@ button {
   font-size: 12px;
   color: #9CA3AF;
   margin-top: 1px;
+}
+
+/* ── Dashboard section divider ───────────────────────────────────────────────── */
+.dash-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 20px;
+}
+
+.dash-section-divider::before,
+.dash-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #E5E7EB;
+}
+
+.dash-section-divider-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9CA3AF;
+  white-space: nowrap;
+}
+
+/* ── Financial Summary grid ──────────────────────────────────────────────────── */
+.dash-finance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.dash-finance-card {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: box-shadow 0.15s;
+}
+
+.dash-finance-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+
+.dash-finance-period {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #6B7280;
+  margin: 0 0 14px;
+}
+
+.dash-finance-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.dash-finance-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+}
+
+.dash-finance-divider {
+  width: 1px;
+  background: #F3F4F6;
+  flex-shrink: 0;
+  margin: 4px 0;
+}
+
+.dash-finance-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6B7280;
+  margin: 0;
+}
+
+.dash-finance-amount {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.dash-finance-sub {
+  font-size: 11px;
+  color: #9CA3AF;
+  margin: 2px 0 0;
 }
 
 /* Hourly chart */
@@ -3237,7 +3348,7 @@ button {
    EXPENSES
    ════════════════════════════════════════════════════════════════════════════ */
 
-/* Filter bar used on Expenses + Profit/Loss pages */
+/* ── Shared filter utilities (used by Expenses + Profit/Loss) ──────────────── */
 .filter-bar {
   display: flex;
   align-items: flex-end;
@@ -3253,33 +3364,16 @@ button {
 }
 
 .filter-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: #6B7280;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .filter-input {
   min-width: 140px;
 }
-
-/* Summary strip above the table */
-.expense-summary-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 10px 16px;
-  margin-bottom: 14px;
-  font-size: 14px;
-  color: #6B7280;
-}
-
-.expense-summary-label { font-weight: 500; }
-.expense-summary-total { color: #111827; font-weight: 600; }
 
 /* ── btn-danger ─────────────────────────────────────────────────────────────── */
 .btn-danger {
@@ -3294,44 +3388,750 @@ button {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   PROFIT / LOSS PAGE
+   EXPENSES PAGE
    ════════════════════════════════════════════════════════════════════════════ */
 
-/* Two-column layout: daily table left, category chart right */
-.pl-grid {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 20px;
-  align-items: start;
+/* ── Filter panel ───────────────────────────────────────────────────────────── */
+.exp-filter-panel {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
-/* Category breakdown rows */
-.pl-cat-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  grid-template-rows: auto auto;
-  gap: 2px 12px;
-  padding: 10px 24px;
-  border-bottom: 1px solid #F3F4F6;
+/* Quick preset buttons */
+.exp-preset-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.pl-cat-row:last-child { border-bottom: none; }
+.exp-preset-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
 
-.pl-cat-info {
-  grid-column: 1;
+.exp-preset-btn:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.exp-preset-btn.active {
+  background: #EF476F;
+  color: #fff;
+  border-color: #EF476F;
+}
+
+/* Date + Category inputs row */
+.exp-filter-controls {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.exp-cat-filter-group {
+  flex: 1;
+  min-width: 160px;
+}
+
+.exp-clear-filter {
+  align-self: flex-end;
+  padding: 7px 12px;
+  background: none;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.exp-clear-filter:hover {
+  border-color: #EF476F;
+  color: #EF476F;
+}
+
+/* ── Summary bar ────────────────────────────────────────────────────────────── */
+.exp-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.exp-summary-left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.pl-cat-name  { font-size: 14px; font-weight: 600; color: #111827; }
-.pl-cat-count { font-size: 12px; color: #9CA3AF; }
-.pl-cat-amount { font-size: 14px; font-weight: 700; color: #F59E0B; white-space: nowrap; align-self: center; }
-.pl-cat-pct    { font-size: 12px; color: #9CA3AF; align-self: center; min-width: 32px; text-align: right; }
+.exp-summary-period {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.exp-summary-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  background: #FEF3C7;
+  color: #92400E;
+  border-radius: 20px;
+}
+
+.exp-summary-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exp-summary-count {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+.exp-summary-divider {
+  width: 1px;
+  height: 16px;
+  background: #D1D5DB;
+  display: inline-block;
+}
+
+.exp-summary-total {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────────── */
+.exp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px 24px;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.exp-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.exp-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 6px;
+}
+
+.exp-empty-sub {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin: 0 0 16px;
+}
+
+/* ── Expense table ──────────────────────────────────────────────────────────── */
+
+/* Date section header row */
+.exp-date-group-row td {
+  background: #F6F7FB !important;
+  padding: 8px 18px !important;
+  border-bottom: 1px solid #E5E7EB !important;
+}
+
+.exp-date-group-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.exp-date-group-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.exp-date-group-total {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6B7280;
+}
+
+/* Amount column */
+.exp-amount-cell {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+}
+
+/* Category badge */
+.exp-cat-badge {
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Vendor, added-by */
+.exp-secondary-cell {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+/* Notes column */
+.exp-notes-cell {
+  max-width: 200px;
+}
+
+.exp-notes-text {
+  font-size: 13px;
+  color: #6B7280;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Empty value dash */
+.exp-nil {
+  color: #D1D5DB;
+  font-size: 13px;
+}
+
+/* Action icon buttons */
+.exp-row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.exp-action-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  background: none;
+  color: #9CA3AF;
+}
+
+.exp-action-edit:hover {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #3B82F6;
+}
+
+.exp-action-delete:hover {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #EF4444;
+}
+
+/* ── Form modal — amount input ──────────────────────────────────────────────── */
+.exp-amount-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.exp-amount-wrap:focus-within {
+  border-color: #EF476F;
+  box-shadow: 0 0 0 3px rgba(239,71,111,0.1);
+}
+
+.exp-amount-wrap.input-error-wrap {
+  border-color: #EF4444;
+}
+
+.exp-amount-prefix {
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+  background: #F9FAFB;
+  border-right: 1px solid #E5E7EB;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  white-space: nowrap;
+}
+
+.exp-amount-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  background: #fff;
+  min-width: 0;
+}
+
+.exp-amount-input::placeholder {
+  color: #D1D5DB;
+  font-weight: 400;
+  font-size: 18px;
+}
+
+/* ── Form modal — payment pills ─────────────────────────────────────────────── */
+.exp-pay-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.exp-pay-pill {
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.exp-pay-pill:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+/* ── Form modal — date row with presets ─────────────────────────────────────── */
+.exp-date-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.exp-date-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.exp-date-preset {
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.exp-date-preset:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+/* ── Form modal — misc ──────────────────────────────────────────────────────── */
+.exp-form-body {
+  gap: 16px;
+}
+
+.exp-required {
+  color: #EF4444;
+  margin-left: 1px;
+}
+
+.exp-optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9CA3AF;
+  margin-left: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.exp-category-select {
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.exp-notes-textarea {
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.5;
+}
+
+.input-error {
+  border-color: #EF4444 !important;
+}
+
+.exp-field-error {
+  font-size: 12px;
+  color: #EF4444;
+  margin: 3px 0 0;
+}
+
+.exp-form-error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #EF4444;
+}
+
+/* ── Delete confirm modal ───────────────────────────────────────────────────── */
+.exp-delete-modal {
+  max-width: 400px;
+  min-width: 340px;
+}
+
+.exp-delete-card {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exp-delete-amount {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+
+.exp-delete-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.exp-delete-note {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PROFIT / LOSS PAGE
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Section 1: Today + Month summary ──────────────────────────────────────── */
+
+.pl-summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pl-period-block {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.pl-period-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #F3F4F6;
+  padding-bottom: 10px;
+}
+
+.pl-period-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #111827;
+}
+
+.pl-period-sub {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+/* 3 stat columns inside each period block */
+.pl-period-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.pl-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 12px;
+}
+
+.pl-stat-divider {
+  width: 1px;
+  background: #F3F4F6;
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+
+.pl-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6B7280;
+}
+
+.pl-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+  color: #111827;
+}
+
+.pl-stat-hint {
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+/* ── Section 2: Trend chart ─────────────────────────────────────────────────── */
+
+.pl-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.pl-trend-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.pl-legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.pl-legend-profit { background: #22C55E; }
+.pl-legend-loss   { background: #EF4444; }
+
+/* Chart container — each column flex-child */
+.pl-trend-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  height: 130px;    /* 55px top + 1px line + 55px bottom + 19px label */
+  padding: 0 2px;
+}
+
+.pl-trend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  cursor: default;
+}
+
+/* Top half — profit bars grow upward, so align children to flex-end (bottom) */
+.pl-trend-half {
+  height: 55px;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Bottom half — loss bars grow downward, so align children to flex-start (top) */
+.pl-trend-half-loss {
+  align-items: flex-start;
+}
+
+.pl-trend-zero {
+  width: 100%;
+  height: 1px;
+  background: #D1D5DB;
+  flex-shrink: 0;
+}
+
+.pl-trend-bar {
+  width: 70%;
+  max-width: 22px;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+}
+
+.pl-bar-profit {
+  background: #22C55E;
+}
+
+.pl-bar-loss {
+  background: #EF4444;
+  border-radius: 0 0 2px 2px;
+}
+
+.pl-trend-label {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin-top: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pl-trend-empty {
+  padding: 24px;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 13px;
+}
+
+/* ── Section 3: Date range detail ───────────────────────────────────────────── */
+
+/* Filter header area inside the card */
+.pl-range-filter {
+  padding: 14px 20px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #F9FAFB;
+}
+
+.pl-range-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pl-range-dates {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Two-column inside the detail section */
+.pl-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 0;
+  align-items: start;
+}
+
+.pl-detail-table-wrap {
+  border-right: 1px solid #E5E7EB;
+  min-width: 0;
+}
+
+.pl-detail-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  padding: 14px 20px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.pl-tfoot-row td {
+  padding: 12px 18px !important;
+  background: #F9FAFB !important;
+  border-top: 2px solid #E5E7EB !important;
+}
+
+/* Category list */
+.pl-detail-cats-wrap {
+  padding: 0;
+  min-width: 0;
+}
+
+.pl-cats-list {
+  padding: 4px 0;
+}
+
+.pl-cat-row {
+  padding: 10px 20px;
+  border-bottom: 1px solid #F9FAFB;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pl-cat-row:last-child { border-bottom: none; }
+
+.pl-cat-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pl-cat-name  { font-size: 13px; font-weight: 600; color: #111827; }
+.pl-cat-count { font-size: 11px; color: #9CA3AF; }
 
 .pl-cat-bar-wrap {
-  grid-column: 1 / -1;
-  height: 6px;
+  height: 5px;
   background: #F3F4F6;
   border-radius: 3px;
   overflow: hidden;
@@ -3342,8 +4142,17 @@ button {
   background: #F59E0B;
   border-radius: 3px;
   transition: width 0.4s ease;
-  min-width: 4px;
+  min-width: 3px;
 }
+
+.pl-cat-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pl-cat-amount { font-size: 13px; font-weight: 700; color: #F59E0B; }
+.pl-cat-pct    { font-size: 11px; color: #9CA3AF; }
 
 /* ════════════════════════════════════════════════════════════════════════════
    RESPONSIVE — TABLET & MOBILE
@@ -3488,6 +4297,27 @@ button {
     width: 300px;
   }
 
+  /* Expenses: filter controls stay in a row on tablet */
+  .exp-filter-controls {
+    flex-wrap: wrap;
+  }
+
+  /* Expenses: hide notes column on tablet to give other columns room */
+  .exp-table th:nth-child(5),
+  .exp-table td:nth-child(5) {
+    display: none;
+  }
+
+  /* Profit/Loss: narrow category column on tablet */
+  .pl-detail-grid {
+    grid-template-columns: 1fr 300px;
+  }
+
+  /* Profit/Loss: smaller stat value on tablet */
+  .pl-stat-value {
+    font-size: 17px;
+  }
+
   /* POS: category tabs — single scrollable row, no wrapping */
   .pos-cat-tabs {
     flex-wrap: nowrap;
@@ -3505,6 +4335,11 @@ button {
   .pos-product-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
+  }
+
+  /* Dashboard: financial cards smaller font on tablet */
+  .dash-finance-amount {
+    font-size: 19px;
   }
 
   /* POS: larger small qty buttons for touch targets */
@@ -3832,6 +4667,16 @@ button {
     gap: 10px;
   }
 
+  /* Finance cards stack on mobile */
+  .dash-finance-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dash-finance-amount {
+    font-size: 18px;
+  }
+
   /* ── Expenses / Profit-Loss mobile ───────────────────────────────────────── */
 
   .filter-bar {
@@ -3843,7 +4688,77 @@ button {
     width: 100%;
   }
 
-  .pl-grid {
+  .exp-filter-panel {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .exp-filter-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .exp-filter-controls .filter-group,
+  .exp-cat-filter-group {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .exp-filter-controls .filter-group .form-input {
+    width: 100%;
+  }
+
+  .exp-summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .exp-amount-input {
+    font-size: 16px;
+  }
+
+  .exp-pay-pills {
+    gap: 4px;
+  }
+
+  .exp-pay-pill {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  /* Hide vendor + added-by columns on small screens */
+  .exp-table th:nth-child(3),
+  .exp-table td:nth-child(3),
+  .exp-table th:nth-child(6),
+  .exp-table td:nth-child(6) {
+    display: none;
+  }
+
+  /* Profit/Loss: stack the summary row and detail grid */
+  .pl-summary-row {
     grid-template-columns: 1fr;
+  }
+
+  .pl-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-detail-table-wrap {
+    border-right: none;
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  .pl-period-stats {
+    flex-wrap: wrap;
+  }
+
+  .pl-stat-value {
+    font-size: 17px;
+  }
+
+  .pl-range-dates {
+    margin-left: 0;
+    width: 100%;
   }
 }
