@@ -139,41 +139,40 @@ function HourlyChart({ data }) {
 
 // ── Today's product sales ─────────────────────────────────────────────────────
 
+const PRODUCT_ACCENTS = [
+  "#EF476F", "#7C3AED", "#3B82F6", "#22C55E",
+  "#F59E0B", "#06B6D4", "#EC4899", "#84CC16",
+];
+
 function TodayProductSales({ rows }) {
-  const totalQty = rows.reduce((s, r) => s + parseInt(r.total_qty || 0), 0);
+  if (rows.length === 0) {
+    return (
+      <p style={{ color: "#bbb", fontSize: "14px", marginBottom: "28px" }}>
+        No paid orders yet today.
+      </p>
+    );
+  }
 
   return (
-    <div className="dash-chart-wrap">
-      <div className="dash-product-sales-header">
-        <p className="dash-section-title" style={{ padding: 0, margin: 0 }}>Today's Product Sales</p>
-        {rows.length > 0 && (
-          <span className="dash-product-sales-meta">
-            {rows.length} product{rows.length !== 1 ? "s" : ""} · {totalQty} units sold
-          </span>
-        )}
-      </div>
-
-      {rows.length === 0 ? (
-        <p className="dash-product-empty">No paid orders yet today.</p>
-      ) : (
-        <div className="dash-product-list">
-          {rows.map((r, i) => {
-            const name = r.variant_name
-              ? `${r.product_name} — ${r.variant_name}`
-              : r.product_name;
-            const qty = parseInt(r.total_qty || 0);
-            const rev = parseFloat(r.total_revenue || 0);
-            return (
-              <div key={i} className="dash-product-row">
-                <span className="dash-product-rank">{i + 1}</span>
-                <span className="dash-product-name">{name}</span>
-                <span className="dash-product-rev">Rs.&nbsp;{fmt(rev)}</span>
-                <span className="dash-product-qty">×{qty}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+    <div className="dash-cards">
+      {rows.map((r, i) => {
+        const name   = r.variant_name
+          ? `${r.product_name} — ${r.variant_name}`
+          : r.product_name;
+        const qty    = parseInt(r.total_qty || 0);
+        const rev    = parseFloat(r.total_revenue || 0);
+        const accent = PRODUCT_ACCENTS[i % PRODUCT_ACCENTS.length];
+        return (
+          <StatCard
+            key={i}
+            label={name}
+            value={qty}
+            sub={`Rs. ${fmt(rev)} revenue`}
+            accent={accent}
+            icon={String(i + 1)}
+          />
+        );
+      })}
     </div>
   );
 }
