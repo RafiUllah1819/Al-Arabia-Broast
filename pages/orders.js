@@ -60,7 +60,7 @@ function OrderDetailModal({ orderId, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal modal-lg"
-        style={{ width: "560px", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+        style={{ maxHeight: "90vh", display: "flex", flexDirection: "column" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
@@ -375,17 +375,17 @@ export default function OrdersPage() {
         {loading ? (
           <p style={{ padding: "24px", color: "#999" }}>Loading...</p>
         ) : (
-          <table className="data-table">
+          <table className="data-table orders-table">
             <thead>
               <tr>
                 <th>Order #</th>
                 <th>Date / Time</th>
                 <th>Type</th>
                 {isAdmin && <th>Cashier</th>}
-                <th>Items</th>
+                <th className="col-hide-mobile">Items</th>
                 <th>Total</th>
                 <th>Payment</th>
-                <th>Status</th>
+                <th className="col-hide-mobile">Status</th>
                 <th></th>
               </tr>
             </thead>
@@ -405,7 +405,7 @@ export default function OrdersPage() {
                   {isAdmin && (
                     <td style={{ color: "#555", fontSize: "13px" }}>{o.cashier_name || "—"}</td>
                   )}
-                  <td style={{ color: "#888" }}>
+                  <td className="col-hide-mobile" style={{ color: "#888" }}>
                     {o.item_count} item{o.item_count !== 1 ? "s" : ""}
                   </td>
                   <td style={{ fontWeight: 600 }}>Rs. {parseFloat(o.total).toFixed(2)}</td>
@@ -423,7 +423,7 @@ export default function OrdersPage() {
                       <span style={{ color: "#aaa", fontSize: "12px" }}>—</span>
                     )}
                   </td>
-                  <td>
+                  <td className="col-hide-mobile">
                     <span className="badge" style={STATUS_STYLE[o.status]}>
                       {o.status}
                     </span>

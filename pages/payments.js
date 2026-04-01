@@ -110,7 +110,7 @@ function CollectPaymentModal({ order, onClose, onCollected }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" style={{ width: "400px" }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Collect Payment — {order.order_number}</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
@@ -216,7 +216,7 @@ function BillDetailModal({ orderId, settings, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal modal-lg"
-        style={{ width: "560px", maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+        style={{ maxHeight: "90vh", display: "flex", flexDirection: "column" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
@@ -531,19 +531,19 @@ export default function PaymentsPage() {
         {loading ? (
           <p style={{ padding: "24px", color: "#999" }}>Loading...</p>
         ) : (
-          <table className="data-table">
+          <table className="data-table payments-table">
             <thead>
               <tr>
                 <th>Bill #</th>
                 <th>Date / Time</th>
                 <th>Type</th>
-                <th>Table</th>
-                <th>Waiter</th>
+                <th className="col-hide-mobile">Table</th>
+                <th className="col-hide-tablet">Waiter</th>
                 {isAdmin && <th>Cashier</th>}
-                <th>Items</th>
+                <th className="col-hide-tablet">Items</th>
                 <th style={{ textAlign: "right" }}>Total</th>
                 <th>Payment</th>
-                <th>Order</th>
+                <th className="col-hide-mobile">Order</th>
                 <th></th>
               </tr>
             </thead>
@@ -563,10 +563,10 @@ export default function PaymentsPage() {
                         {TYPE_LABEL[o.type] || o.type}
                       </span>
                     </td>
-                    <td style={{ color: "#555", fontSize: "13px" }}>{tableDisplay(o)}</td>
-                    <td style={{ color: "#555", fontSize: "13px" }}>{o.waiter_name || "—"}</td>
+                    <td className="col-hide-mobile" style={{ color: "#555", fontSize: "13px" }}>{tableDisplay(o)}</td>
+                    <td className="col-hide-tablet" style={{ color: "#555", fontSize: "13px" }}>{o.waiter_name || "—"}</td>
                     {isAdmin && <td style={{ color: "#555", fontSize: "13px" }}>{o.cashier_name || "—"}</td>}
-                    <td style={{ color: "#888" }}>
+                    <td className="col-hide-tablet" style={{ color: "#888" }}>
                       {o.item_count} item{o.item_count !== 1 ? "s" : ""}
                     </td>
                     <td style={{ fontWeight: 600, textAlign: "right" }}>
@@ -575,26 +575,26 @@ export default function PaymentsPage() {
                     <td>
                       <span className="badge" style={pay.style}>{pay.label}</span>
                     </td>
-                    <td>
+                    <td className="col-hide-mobile">
                       <span className="badge" style={ORDER_STATUS_STYLE[o.status]}>
                         {ORDER_STATUS_LABEL[o.status] || o.status}
                       </span>
                     </td>
-                    <td>
-                      <div style={{ display: "flex", gap: "6px" }}>
+                    <td className="payments-actions-cell">
+                      <div className="payments-actions-wrap">
                         {canCollect && (
                           <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setCollectingOrder(o)}
                           >
-                            Collect Payment
+                            Collect
                           </button>
                         )}
                         <button
                           className="btn btn-sm btn-secondary"
                           onClick={() => setSelectedId(o.id)}
                         >
-                          {o.payment_status === "paid" ? "Reprint" : "View / Print"}
+                          {o.payment_status === "paid" ? "Reprint" : "View"}
                         </button>
                       </div>
                     </td>

@@ -287,7 +287,7 @@ function ProductsTab({ isAdmin, categories }) {
           product={editing}
           categories={categories}
           onClose={() => { setModalOpen(false); setEditing(null); }}
-          onSaved={() => { fetchProducts(); setModalOpen(false); setEditing(null); }}
+          onSaved={async () => { await fetchProducts(); setModalOpen(false); setEditing(null); }}
         />
       )}
 
@@ -481,7 +481,7 @@ export default function MenuPage() {
     fetch("/api/categories")
       .then((r) => r.json())
       .then((d) => setCategories(d.categories || []));
-  }, []);
+  }, [activeTab]);
 
   return (
     <div>

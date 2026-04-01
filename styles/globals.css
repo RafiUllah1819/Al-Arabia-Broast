@@ -4295,12 +4295,47 @@ button {
     padding: 7px 14px;
   }
 
+  .tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
   .tab-btn {
     padding: 10px 16px;
     min-height: 38px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  /* POS: narrow the cart slightly so product grid keeps breathing room */
+  /* ── Orders / Payments tablet ─────────────────────────────────────────────── */
+
+  /* Hide tablet-designated columns (Waiter, Items in payments) */
+  .col-hide-tablet {
+    display: none;
+  }
+
+  /* Tighter cell padding so more columns fit without forcing horizontal scroll */
+  .orders-table th,
+  .orders-table td,
+  .payments-table th,
+  .payments-table td {
+    padding: 10px 12px;
+  }
+
+  /* Keep filter selects usable but not too wide */
+  .orders-filter-select {
+    min-width: 110px;
+  }
+
+  /* Action buttons in payments — keep in a flex row */
+  .payments-actions-wrap {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* ── POS: narrow the cart slightly so product grid keeps breathing room */
   .pos-cart {
     width: 300px;
   }
@@ -4369,6 +4404,52 @@ button {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   TABLET  (≤ 1024px)
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+
+  /* ── Kitchen tablet ──────────────────────────────────────────────────────── */
+
+  /* Slightly tighter grid so cards don't become too wide on 10-inch tablets */
+  .kitchen-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    padding: 14px;
+    gap: 14px;
+  }
+
+  /* Bigger touch targets for action buttons on tablet */
+  .kt-btn-print,
+  .kt-btn-complete {
+    padding: 11px 8px;
+  }
+
+  /* ── Tables tablet ───────────────────────────────────────────────────────── */
+
+  .tables-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .tables-summary-item {
+    padding: 10px 14px;
+    min-width: 80px;
+  }
+
+  /* POS table picker — bigger tap targets on tablet */
+  .tbl-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .tbl-card {
+    min-height: 88px;
+    padding: 12px 11px 10px;
+  }
+
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    MOBILE ONLY  (≤ 768px)
    ───────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -4383,6 +4464,11 @@ button {
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 14px;
+  }
+
+  .page-header-actions {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
   .page-title {
@@ -4637,34 +4723,299 @@ button {
     padding: 10px 14px;
     min-height: auto;
     flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .kitchen-header-left {
+    gap: 8px;
+  }
+
+  .kitchen-header-right {
+    flex-wrap: wrap;
     gap: 8px;
   }
 
   .kitchen-title {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .kitchen-refresh-hint {
     display: none;
   }
 
+  .kitchen-refresh-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .kh-stat {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+
   /* Single column ticket grid on phone */
   .kitchen-grid {
-    padding: 10px;
-    gap: 10px;
+    padding: 12px;
+    gap: 12px;
     grid-template-columns: 1fr;
+  }
+
+  .kt-ticket {
+    padding: 14px;
+  }
+
+  .kt-order-number {
+    font-size: 24px;
+  }
+
+  .kt-item-name {
+    font-size: 16px;
+  }
+
+  .kt-item-qty {
+    font-size: 20px;
+    min-width: 30px;
+  }
+
+  .kt-actions {
+    gap: 10px;
+    padding-top: 14px;
+  }
+
+  /* Large tap targets for Print / Start / Complete buttons */
+  .kt-btn-print,
+  .kt-btn-complete {
+    padding: 14px 8px;
+    font-size: 15px;
+    border-radius: 8px;
+    min-height: 48px;
   }
 
   /* ── Tables page mobile ──────────────────────────────────────────────────── */
 
   .tables-summary {
     gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  /* Equal-width summary pills that fill the row */
+  .tables-summary-item {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 6px;
+  }
+
+  .tables-summary-count {
+    font-size: 22px;
+  }
+
+  .tables-summary-label {
+    font-size: 10px;
+  }
+
+  /* 2-column table cards on mobile */
+  .tables-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .tables-card {
+    padding: 13px 12px;
+    gap: 10px;
+  }
+
+  .tables-card-name {
+    font-size: 15px;
+  }
+
+  .tables-card-amount {
+    font-size: 18px;
+  }
+
+  /* Touch-friendly status toggle buttons (Available / Occupied / Reserved) */
+  .tables-card-status-btns {
+    gap: 4px;
+  }
+
+  .tables-card-status-btns .btn {
+    flex: 1;
+    min-height: 36px;
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+
+  /* Touch-friendly edit / deactivate buttons */
+  .tables-card-btn-row {
+    gap: 6px;
+  }
+
+  .tables-card-btn-row .btn {
+    flex: 1;
+    min-height: 36px;
+    padding: 7px 4px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* POS table picker on mobile */
+  .tbl-picker-modal {
+    width: min(98vw, 600px);
+    max-height: 88vh;
+  }
+
+  .tbl-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .tbl-card {
+    min-height: 80px;
+    padding: 11px 9px 9px;
+  }
+
+  .tbl-card-name {
+    font-size: 14px;
+  }
+
+  .tbl-card-bill {
+    font-size: 13px;
+  }
+
+  /* ── Orders / Payments mobile ───────────────────────────────────────────── */
+
+  /* Hide mobile-designated columns (Items, Status on orders; Table, Order on payments) */
+  .col-hide-mobile {
+    display: none;
+  }
+
+  /* Filter bar: stack the two groups vertically */
+  .orders-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .orders-filter-group {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .orders-filter-select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  /* Bills summary: wrap stats, remove decorative dividers */
+  .bills-summary-bar {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    gap: 12px 20px;
+  }
+
+  .bills-stat {
+    padding: 0;
+    flex: 1;
+    min-width: 110px;
+  }
+
+  .bills-stat-divider {
+    display: none;
+  }
+
+  .bills-stat-value {
+    font-size: 16px;
+  }
+
+  /* Orders/Payments: tighter cell padding on mobile */
+  .orders-table th,
+  .orders-table td,
+  .payments-table th,
+  .payments-table td {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  /* Payments: action buttons stack vertically */
+  .payments-actions-wrap {
+    flex-direction: column;
+    gap: 4px;
+    min-width: 80px;
+  }
+
+  .payments-actions-wrap .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ── Forms mobile ────────────────────────────────────────────────────────── */
+
+  /* form-row and form-row-3: single column on mobile */
+  .form-row,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* Pay method buttons: taller touch targets */
+  .pay-method-btn {
+    padding: 12px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  /* Product image upload: full width on mobile */
+  .product-form-image-col {
+    max-width: 100%;
+  }
+
+  /* Variant add row: wrap inputs to two lines if needed */
+  .variant-add-row {
     flex-wrap: wrap;
   }
 
-  .tables-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-    gap: 10px;
+  .variant-add-row .form-input {
+    min-width: 0;
+  }
+
+  /* ── Modal improvements on mobile ───────────────────────────────────────── */
+
+  /* Modal-xl: full width and use most of screen height */
+  .modal-xl {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    max-height: 95vh;
+  }
+
+  /* Ensure modal-overlay aligns to bottom for full-screen modals */
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  /* Modal header: slightly less padding on mobile */
+  .modal-header {
+    padding: 14px 16px 12px;
+  }
+
+  /* Modal body: comfortable padding */
+  .modal-body {
+    padding: 16px;
+  }
+
+  /* Modal footer: comfortable padding and stack if needed */
+  .modal-footer {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    justify-content: center;
   }
 
   /* ── Dashboard mobile ────────────────────────────────────────────────────── */
@@ -4694,6 +5045,23 @@ button {
   .filter-input {
     min-width: 0;
     width: 100%;
+  }
+
+  /* ── Reports date bar ─────────────────────────────────────────────────────── */
+  .report-date-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .report-custom-range {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .report-date-input {
+    flex: 1;
+    min-width: 120px;
   }
 
   .exp-filter-panel {
@@ -4769,4 +5137,45 @@ button {
     margin-left: 0;
     width: 100%;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SMALL PHONES  (≤ 480px)
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+
+  /* Tables: single column — open-bill cards with admin controls are too wide
+     for a 2-col layout on very small phones */
+  .tables-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Summary row: allow wrap so numbers stay readable */
+  .tables-summary {
+    flex-wrap: wrap;
+  }
+
+  .tables-summary-item {
+    min-width: 70px;
+  }
+
+  /* Kitchen action buttons: a touch more height on the smallest screens */
+  .kt-btn-print,
+  .kt-btn-complete {
+    padding: 15px 8px;
+    min-height: 52px;
+  }
+
+  /* Kitchen header: stack title + stats vertically */
+  .kitchen-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .kitchen-header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
 }
