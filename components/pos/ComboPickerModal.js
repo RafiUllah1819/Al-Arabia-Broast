@@ -43,7 +43,6 @@ export default function ComboPickerModal({ product, onConfirm, onClose }) {
               <div className="combo-contents-list">
                 {product.combo_contents.map((item, i) => (
                   <div key={i} className="combo-contents-row">
-                    <span className="combo-contents-qty">×{item.quantity}</span>
                     <span className="combo-contents-name">{item.name}</span>
                   </div>
                 ))}
