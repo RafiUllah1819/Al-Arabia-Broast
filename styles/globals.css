@@ -1447,7 +1447,7 @@ button {
 }
 
 .dash-card-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.7px;
@@ -1455,7 +1455,7 @@ button {
 }
 
 .dash-card-value {
-  font-size: 30px;
+  font-size: 22px;
   font-weight: 800;
   color: #111827;
   line-height: 1.1;
@@ -1463,7 +1463,7 @@ button {
 }
 
 .dash-card-sub {
-  font-size: 12px;
+  font-size: 11px;
   color: #9CA3AF;
   margin-top: 1px;
 }
