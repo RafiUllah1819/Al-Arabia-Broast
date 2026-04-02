@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -351,10 +352,13 @@ function DeleteConfirm({ expense, onConfirm, onClose }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function ExpensesPage() {
+  const { user }  = useAuth();
+
   const [expenses,        setExpenses]        = useState([]);
   const [categories,      setCategories]      = useState([]);
   const [loading,         setLoading]         = useState(true);
   const [error,           setError]           = useState("");
+  const [clearing,        setClearing]        = useState(false);
 
   const [dateFrom,        setDateFrom]        = useState(today());
   const [dateTo,          setDateTo]          = useState(today());
@@ -429,6 +433,22 @@ export default function ExpensesPage() {
     }
   }
 
+  async function handleClearAll() {
+    if (!confirm("This will permanently delete ALL expense records.\n\nAre you sure?")) return;
+    setClearing(true);
+    setError("");
+    try {
+      const res  = await fetch("/api/admin/clear-expenses", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to clear expenses."); return; }
+      setExpenses([]);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setClearing(false);
+    }
+  }
+
   function handleSaved() {
     setShowAdd(false);
     setEditTarget(null);
@@ -481,6 +501,16 @@ export default function ExpensesPage() {
           >
             {exporting ? "…" : "↓ JSON"}
           </button>
+          {user?.role === "admin" && (
+            <button
+              className="btn"
+              style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
+              onClick={handleClearAll}
+              disabled={clearing}
+            >
+              {clearing ? "Clearing…" : "Clear All Expenses"}
+            </button>
+          )}
           <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
             + Add Expense
           </button>
