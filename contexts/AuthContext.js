@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 
 const AuthContext = createContext(null);
@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
   const router                = useRouter();
+  const loggingOut            = useRef(false);
 
   // On mount, check if the user has an active session
   useEffect(() => {
@@ -22,7 +23,38 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
+  // Intercept all fetch calls globally — if any API returns 401, the session
+  // has expired or been destroyed (browser closed and reopened, or 12h inactive).
+  // Automatically redirect to login without requiring any per-page handling.
+  useEffect(() => {
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+      const res = await originalFetch(...args);
+
+      // Only intercept our own API routes
+      const url = typeof args[0] === "string" ? args[0] : args[0]?.url || "";
+      if (
+        res.status === 401 &&
+        url.startsWith("/api/") &&
+        !url.includes("/api/auth/") &&
+        !loggingOut.current
+      ) {
+        loggingOut.current = true;
+        setUser(null);
+        router.push("/login");
+      }
+
+      return res;
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [router]);
+
   async function logout() {
+    loggingOut.current = true;
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     router.push("/login");

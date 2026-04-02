@@ -19,9 +19,10 @@ export default async function handler(req, res) {
   try {
     const user = await login(username, password);
 
-    // Save the user into the encrypted session cookie
+    // Save the user into the encrypted session cookie.
+    // lastActivity is used by requireAuth to enforce 12-hour inactivity logout.
     const session = await getSession(req, res);
-    session.user = user;
+    session.user = { ...user, lastActivity: Date.now() };
     await session.save();
 
     return res.status(200).json({
