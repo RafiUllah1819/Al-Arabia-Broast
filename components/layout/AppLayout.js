@@ -12,11 +12,12 @@ export default function AppLayout({ children }) {
   const { user, loading } = useAuth();
   const router            = useRouter();
   const isPublic          = PUBLIC_PAGES.includes(router.pathname);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen,       setMobileOpen]       = useState(false);
 
-  // Close sidebar whenever the route changes (e.g. user taps a nav link)
+  // Close mobile sidebar whenever the route changes
   useEffect(() => {
-    setSidebarOpen(false);
+    setMobileOpen(false);
   }, [router.pathname]);
 
   useEffect(() => {
@@ -50,18 +51,23 @@ export default function AppLayout({ children }) {
   }
 
   return (
-    <div className="app-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className={`app-layout${sidebarCollapsed ? " sidebar-is-collapsed" : ""}`}>
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
 
-      {/* Dark backdrop — only rendered/visible on tablet/mobile when sidebar is open */}
-      {sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      {/* Dark backdrop — mobile/tablet only */}
+      {mobileOpen && (
+        <div className="sidebar-overlay" onClick={() => setMobileOpen(false)} />
       )}
 
       <div className="main-area">
         <Header
           pathname={router.pathname}
-          onMenuToggle={() => setSidebarOpen((o) => !o)}
+          onMenuToggle={() => setMobileOpen((o) => !o)}
         />
         <main className="page-content">{children}</main>
       </div>
