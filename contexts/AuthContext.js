@@ -9,8 +9,23 @@ export function AuthProvider({ children }) {
   const router                = useRouter();
   const loggingOut            = useRef(false);
 
-  // On mount, check if the user has an active session
+  // On mount, check if the user has an active session.
+  // sessionStorage is cleared when the browser is closed (unlike cookies which
+  // browsers restore via "Continue where you left off"). If the flag is missing
+  // it means the browser was just opened fresh — destroy the server session and
+  // go to login even if a cookie still exists.
   useEffect(() => {
+    const sessionAlive = sessionStorage.getItem("session_alive");
+
+    if (!sessionAlive) {
+      // Browser was closed — force logout on the server then redirect to login
+      fetch("/api/auth/logout", { method: "POST" }).finally(() => {
+        setUser(null);
+        setLoading(false);
+      });
+      return;
+    }
+
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -55,6 +70,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     loggingOut.current = true;
+    sessionStorage.removeItem("session_alive");
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     router.push("/login");

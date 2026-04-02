@@ -30,7 +30,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Update context with the logged-in user, then redirect
+      // Mark session as alive in sessionStorage — cleared when browser closes
+      sessionStorage.setItem("session_alive", "1");
       setUser(data.user);
       router.replace(data.redirectTo);
     } catch {
