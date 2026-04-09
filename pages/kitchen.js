@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -459,10 +460,7 @@ export default function KitchenPage() {
 
       {/* ── Content ── */}
       {loading && orders.length === 0 ? (
-        <div className="kitchen-loading">
-          <span className="kitchen-loading-dot" />
-          Loading orders…
-        </div>
+        <PageLoader text="Loading orders…" />
       ) : orders.length === 0 ? (
         <div className="kitchen-empty">
           <div className="kitchen-empty-icon">✓</div>
