@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Category Form Modal ───────────────────────────────────────────────────────
 
@@ -155,7 +156,7 @@ export default function ExpenseCategoriesPage() {
       </div>
 
       {loading ? (
-        <div className="placeholder-page"><p style={{ color: "#999" }}>Loading…</p></div>
+        <PageLoader />
       ) : error ? (
         <div className="placeholder-page"><p className="form-error">{error}</p></div>
       ) : categories.length === 0 ? (

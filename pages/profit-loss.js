@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -271,7 +272,7 @@ export default function ProfitLossPage() {
       </div>
 
       {loading && !data ? (
-        <div className="placeholder-page"><p style={{ color: "#9CA3AF" }}>Loading…</p></div>
+        <PageLoader />
       ) : error ? (
         <div className="placeholder-page"><p className="form-error">{error}</p></div>
       ) : (
@@ -348,9 +349,7 @@ export default function ProfitLossPage() {
             </div>
 
             {loading ? (
-              <div style={{ padding: "32px", textAlign: "center", color: "#9CA3AF" }}>
-                Updating…
-              </div>
+              <PageLoader text="Updating…" />
             ) : rows.length === 0 ? (
               <div style={{ padding: "40px 24px", textAlign: "center", color: "#9CA3AF", fontSize: 14 }}>
                 No data for this period. Try adding expenses or check the date range.

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -600,9 +601,7 @@ export default function ExpensesPage() {
 
       {/* ── Content ── */}
       {loading ? (
-        <div className="placeholder-page">
-          <p style={{ color: "#9CA3AF" }}>Loading…</p>
-        </div>
+        <PageLoader />
       ) : error ? (
         <div className="placeholder-page">
           <p className="form-error">{error}</p>
