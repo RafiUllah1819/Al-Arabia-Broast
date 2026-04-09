@@ -326,14 +326,6 @@ export default function SettingsPage() {
             }}>
               {appUrl}
             </div>
-            <a
-              href={qrDataUrl}
-              download="restaurant-app-qr.png"
-              className="btn btn-secondary btn-sm"
-              style={{ display: "inline-block", textDecoration: "none" }}
-            >
-              Download QR Code
-            </a>
           </div>
         </div>
       )}
