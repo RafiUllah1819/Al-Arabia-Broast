@@ -154,8 +154,8 @@ body {
   font-size: 11px;
   margin-bottom: 3px;
 }
-.meta-lbl { color: #888; flex-shrink: 0; min-width: 44px; }
-.meta-val { font-weight: 600; text-align: right; }
+.meta-lbl { color: #111; font-weight: bold; flex-shrink: 0; min-width: 44px; }
+.meta-val { font-weight: bold; text-align: right; }
 /* ── Items ── */
 .items-label {
   font-size: 9px;
@@ -169,7 +169,9 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 9px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #ccc;
 }
 .qty {
   font-size: 20px;
@@ -207,7 +209,8 @@ body {
 .footer {
   text-align: center;
   font-size: 9px;
-  color: #bbb;
+  font-weight: bold;
+  color: #333;
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-top: 6px;
