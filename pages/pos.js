@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import ProductPickerModal from "../components/pos/ProductPickerModal";
 import ComboPickerModal   from "../components/pos/ComboPickerModal";
 import PaymentModal       from "../components/pos/PaymentModal";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -943,7 +944,7 @@ export default function POSPage() {
         </div>
 
         {loading ? (
-          <div className="pos-empty">Loading menu...</div>
+          <PageLoader text="Loading menu…" />
         ) : error ? (
           <div className="pos-empty" style={{ color: "#EF476F" }}>{error}</div>
         ) : (
