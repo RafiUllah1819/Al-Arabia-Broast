@@ -431,10 +431,10 @@ function CartPanel({
       ) : (
         <button
           className="btn btn-primary pos-charge-btn"
-          disabled={items.length === 0}
-          onClick={onCharge}
+          disabled={items.length === 0 || saving}
+          onClick={onPlaceOrder}
         >
-          Charge Rs. {total.toFixed(2)}
+          Place Order
         </button>
       )}
     </div>
@@ -498,10 +498,10 @@ function SuccessBanner({ result, onDismiss }) {
               <span>Payment</span>
               <span>Collect later from Bills</span>
             </div>
-          ) : order.type === "delivery" && !payment ? (
+          ) : (order.type === "delivery" || order.type === "takeaway") && !payment ? (
             <div className="pos-success-row" style={{ color: "#e67700" }}>
               <span>Payment</span>
-              <span>Cash on delivery — collect later</span>
+              <span>Collect later from Bills</span>
             </div>
           ) : (
             <>

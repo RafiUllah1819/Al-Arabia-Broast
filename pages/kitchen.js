@@ -129,7 +129,7 @@ body {
 }
 .slip-label {
   text-align: center;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: bold;
   letter-spacing: 3px;
   color: #111;
@@ -153,14 +153,14 @@ body {
   justify-content: space-between;
   align-items: baseline;
   gap: 6px;
-  font-size: 11px;
+  font-size: 13px;
   margin-bottom: 3px;
 }
 .meta-lbl { color: #000; font-weight: bold; flex-shrink: 0; min-width: 44px; }
 .meta-val { font-weight: bold; text-align: right; }
 /* ── Items ── */
 .items-label {
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -186,11 +186,11 @@ body {
 }
 .item-body { flex: 1; }
 .item-name { font-size: 13px; font-weight: 700; color: #000; line-height: 1.3; }
-.var       { font-size: 11px; font-weight: bold; color: #000; margin-top: 1px; }
-.combo-line { font-size: 11px; color: #000; padding-left: 6px; margin-top: 2px; font-weight: bold; }
-.addon     { font-size: 11px; font-weight: bold; color: #000; padding-left: 6px; margin-top: 1px; }
+.var       { font-size: 13px; font-weight: bold; color: #000; margin-top: 1px; }
+.combo-line { font-size: 13px; color: #000; padding-left: 6px; margin-top: 2px; font-weight: bold; }
+.addon     { font-size: 13px; font-weight: bold; color: #000; padding-left: 6px; margin-top: 1px; }
 .note      {
-  font-size: 11px; font-weight: 700; color: #c00;
+  font-size: 13px; font-weight: 700; color: #c00;
   padding: 2px 5px; margin-top: 3px;
   border: 1px dashed #c00; border-radius: 2px;
   display: inline-block;
@@ -210,7 +210,7 @@ body {
 /* ── Footer ── */
 .footer {
   text-align: center;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: bold;
   color: #333;
   letter-spacing: 1px;
