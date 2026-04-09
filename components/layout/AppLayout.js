@@ -40,9 +40,79 @@ export default function AppLayout({ children }) {
     return <>{children}</>;
   }
 
-  // Blank while session is loading or user is being redirected
+  // Beautiful loading screen while session is loading or user is being redirected
   if (loading || !user) {
-    return null;
+    return (
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        background: "linear-gradient(135deg, #14213D 0%, #1B2A4A 100%)",
+        gap: "24px",
+      }}>
+        {/* Logo / brand mark */}
+        <div style={{
+          width: "72px",
+          height: "72px",
+          borderRadius: "20px",
+          background: "#EF476F",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "36px",
+          boxShadow: "0 8px 32px rgba(239,71,111,0.4)",
+          animation: "rm-pulse 1.8s ease-in-out infinite",
+        }}>
+          🍽️
+        </div>
+
+        {/* App name */}
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            color: "#fff",
+            fontSize: "22px",
+            fontWeight: 700,
+            letterSpacing: "0.5px",
+            marginBottom: "4px",
+          }}>
+            Restaurant Manager
+          </div>
+          <div style={{ color: "#8899bb", fontSize: "13px" }}>
+            Loading your workspace…
+          </div>
+        </div>
+
+        {/* Animated bar */}
+        <div style={{
+          width: "180px",
+          height: "4px",
+          borderRadius: "99px",
+          background: "rgba(255,255,255,0.1)",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            height: "100%",
+            borderRadius: "99px",
+            background: "#EF476F",
+            animation: "rm-slide 1.4s ease-in-out infinite",
+          }} />
+        </div>
+
+        <style>{`
+          @keyframes rm-pulse {
+            0%, 100% { transform: scale(1);   box-shadow: 0 8px 32px rgba(239,71,111,0.4); }
+            50%       { transform: scale(1.08); box-shadow: 0 12px 40px rgba(239,71,111,0.6); }
+          }
+          @keyframes rm-slide {
+            0%   { width: 0%;   margin-left: 0%; }
+            50%  { width: 60%;  margin-left: 20%; }
+            100% { width: 0%;   margin-left: 100%; }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   // Don't render content if role check fails (redirect is in-flight)
