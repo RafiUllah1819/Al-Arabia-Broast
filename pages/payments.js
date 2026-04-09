@@ -613,7 +613,7 @@ export default function PaymentsPage() {
                       <div className="payments-actions-wrap">
                         {canCollect && (
                           <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-primary me-2"
                             onClick={() => setCollectingOrder(o)}
                           >
                             Collect
