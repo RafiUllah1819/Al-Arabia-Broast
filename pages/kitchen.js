@@ -129,8 +129,9 @@ body {
 .slip-label {
   text-align: center;
   font-size: 9px;
+  font-weight: bold;
   letter-spacing: 3px;
-  color: #aaa;
+  color: #111;
   text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -159,10 +160,10 @@ body {
 /* ── Items ── */
 .items-label {
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #999;
+  color: #111;
   margin-bottom: 8px;
 }
 .item {
@@ -184,9 +185,9 @@ body {
 }
 .item-body { flex: 1; }
 .item-name { font-size: 13px; font-weight: 700; color: #111; line-height: 1.3; }
-.var       { font-size: 11px; color: #666; margin-top: 1px; }
-.combo-line { font-size: 11px; color: #333; padding-left: 6px; margin-top: 2px; font-weight: 600; }
-.addon     { font-size: 11px; color: #555; padding-left: 6px; margin-top: 1px; }
+.var       { font-size: 11px; font-weight: bold; color: #111; margin-top: 1px; }
+.combo-line { font-size: 11px; color: #111; padding-left: 6px; margin-top: 2px; font-weight: bold; }
+.addon     { font-size: 11px; font-weight: bold; color: #111; padding-left: 6px; margin-top: 1px; }
 .note      {
   font-size: 11px; font-weight: 700; color: #c00;
   padding: 2px 5px; margin-top: 3px;
