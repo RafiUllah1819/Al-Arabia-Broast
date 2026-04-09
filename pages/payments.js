@@ -610,7 +610,7 @@ export default function PaymentsPage() {
                       </span>
                     </td>
                     <td className="payments-actions-cell">
-                      <div className="payments-actions-wrap">
+                      <div className="payments-actions-wrap" style={{ gap: "8px" }}>
                         {canCollect && (
                           <button
                             className="btn btn-sm btn-primary me-2"
