@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ function OrderDetailModal({ orderId, onClose }) {
         </div>
 
         <div className="modal-body" style={{ overflowY: "auto", flex: 1 }}>
-          {loading && <p style={{ color: "#999" }}>Loading...</p>}
+          {loading && <PageLoader />}
           {error   && <p className="form-error">{error}</p>}
 
           {order && (
@@ -402,7 +403,7 @@ export default function OrdersPage() {
       {/* Table */}
       <div className="table-container">
         {loading ? (
-          <p style={{ padding: "24px", color: "#999" }}>Loading...</p>
+          <PageLoader />
         ) : (
           <table className="data-table orders-table">
             <thead>

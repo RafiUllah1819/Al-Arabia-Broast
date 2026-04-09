@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import CategoryFormModal from "../components/menu/CategoryFormModal";
 import ProductFormModal  from "../components/menu/ProductFormModal";
 import VariantsModal     from "../components/menu/VariantsModal";
+import PageLoader from "../components/ui/PageLoader";
 import ComboItemsModal   from "../components/menu/ComboItemsModal";
 import AddonsTab         from "../components/menu/AddonsTab";
 
@@ -79,7 +80,7 @@ function CategoriesTab({ isAdmin }) {
       </div>
       {actionError && <p className="form-error" style={{ marginBottom: "12px" }}>{actionError}</p>}
       <div className="table-container">
-        {loading ? <p style={{ padding: "24px", color: "#999" }}>Loading...</p> : (
+        {loading ? <PageLoader /> : (
           <table className="data-table">
             <thead>
               <tr>
@@ -200,7 +201,7 @@ function ProductsTab({ isAdmin, categories }) {
       {actionError && <p className="form-error" style={{ marginBottom: "12px" }}>{actionError}</p>}
 
       <div className="table-container">
-        {loading ? <p style={{ padding: "24px", color: "#999" }}>Loading...</p> : (
+        {loading ? <PageLoader /> : (
           <table className="data-table">
             <thead>
               <tr>
@@ -388,7 +389,7 @@ function ComboOnlyItemsTab() {
       {error && <p className="form-error" style={{ marginBottom: "12px" }}>{error}</p>}
 
       <div className="table-container">
-        {loading ? <p style={{ padding: "24px", color: "#999" }}>Loading...</p> : (
+        {loading ? <PageLoader /> : (
           <table className="data-table">
             <thead>
               <tr><th>Item Name</th><th>Actions</th></tr>

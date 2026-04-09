@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -338,7 +339,7 @@ export default function TablesPage() {
       )}
 
       {loading ? (
-        <p style={{ color: "#999", padding: "24px 0" }}>Loading...</p>
+        <PageLoader />
       ) : (
         <>
           {/* Active tables card grid */}

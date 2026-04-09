@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import PageLoader from "../components/ui/PageLoader";
 import { SETTINGS_SCHEMA } from "../lib/settingsSchema";
 
 export default function SettingsPage() {
@@ -85,7 +86,7 @@ export default function SettingsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (loading) {
-    return <div className="placeholder-page"><p style={{ color: "#999" }}>Loading...</p></div>;
+    return <PageLoader />;
   }
 
   const sym = form.currency_symbol || "Rs.";

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import UserFormModal from "../components/users/UserFormModal";
+import PageLoader from "../components/ui/PageLoader";
 
 const ROLE_COLORS = {
   admin:   { background: "#FEF0F3", color: "#EF476F" },
@@ -94,7 +95,7 @@ export default function StaffPage() {
 
       <div className="table-container">
         {loading ? (
-          <p style={{ padding: "24px", color: "#999" }}>Loading...</p>
+          <PageLoader />
         ) : (
           <table className="data-table">
             <thead>

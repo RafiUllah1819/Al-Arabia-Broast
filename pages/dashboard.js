@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -265,7 +266,7 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="placeholder-page"><p style={{ color: "#999" }}>Loading...</p></div>;
+  if (loading) return <PageLoader />;
   if (error)   return <div className="placeholder-page"><p className="form-error">{error}</p></div>;
 
   const { stats, hourly, recentOrders, todaySales, monthlySales } = data;
