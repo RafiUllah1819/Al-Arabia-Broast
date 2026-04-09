@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import PageLoader from "../components/ui/PageLoader";
 import { SETTINGS_SCHEMA } from "../lib/settingsSchema";
+import QRCode from "qrcode";
 
 export default function SettingsPage() {
   const [form,    setForm]    = useState(() => {
@@ -14,7 +15,18 @@ export default function SettingsPage() {
   const [error,         setError]         = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError,     setLogoError]     = useState("");
+  const [qrDataUrl,     setQrDataUrl]     = useState("");
+  const [appUrl,        setAppUrl]        = useState("");
   const logoInputRef = useRef(null);
+
+  // ── Generate QR code from the app's base URL ───────────────────────────────
+  useEffect(() => {
+    const url = window.location.origin;
+    setAppUrl(url);
+    QRCode.toDataURL(url, { width: 200, margin: 2, color: { dark: "#14213D", light: "#ffffff" } })
+      .then(setQrDataUrl)
+      .catch(() => {});
+  }, []);
 
   // ── Load settings ──────────────────────────────────────────────────────────
 
@@ -267,6 +279,64 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* ── QR Code Card ── */}
+      {qrDataUrl && (
+        <div style={{
+          marginTop: "24px",
+          background: "#fff",
+          border: "1px solid #E5E7EB",
+          borderRadius: "12px",
+          padding: "24px",
+          display: "flex",
+          alignItems: "center",
+          gap: "32px",
+          flexWrap: "wrap",
+        }}>
+          {/* QR image */}
+          <div style={{
+            background: "#fff",
+            border: "1px solid #E5E7EB",
+            borderRadius: "10px",
+            padding: "12px",
+            display: "inline-flex",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+          }}>
+            <img src={qrDataUrl} alt="App QR Code" style={{ width: 160, height: 160, display: "block" }} />
+          </div>
+
+          {/* Info + actions */}
+          <div style={{ flex: 1, minWidth: "200px" }}>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "#111827", marginBottom: "6px" }}>
+              Open on Mobile / Tablet
+            </div>
+            <div style={{ fontSize: "13px", color: "#6B7280", marginBottom: "12px", lineHeight: 1.6 }}>
+              Scan this QR code with any phone or tablet camera to instantly open the app — no typing needed. Works for all roles (Admin, Manager, Waiter, Cashier).
+            </div>
+            <div style={{
+              background: "#F6F7FB",
+              border: "1px solid #E5E7EB",
+              borderRadius: "6px",
+              padding: "8px 12px",
+              fontFamily: "monospace",
+              fontSize: "12px",
+              color: "#374151",
+              wordBreak: "break-all",
+              marginBottom: "14px",
+            }}>
+              {appUrl}
+            </div>
+            <a
+              href={qrDataUrl}
+              download="restaurant-app-qr.png"
+              className="btn btn-secondary btn-sm"
+              style={{ display: "inline-block", textDecoration: "none" }}
+            >
+              Download QR Code
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
