@@ -140,7 +140,7 @@ body {
   font-size: 28px;
   font-weight: 900;
   letter-spacing: 1px;
-  color: #111;
+  color: #000;
   margin-bottom: 5px;
   line-height: 1;
 }
@@ -155,7 +155,7 @@ body {
   font-size: 11px;
   margin-bottom: 3px;
 }
-.meta-lbl { color: #111; font-weight: bold; flex-shrink: 0; min-width: 44px; }
+.meta-lbl { color: #000; font-weight: bold; flex-shrink: 0; min-width: 44px; }
 .meta-val { font-weight: bold; text-align: right; }
 /* ── Items ── */
 .items-label {
@@ -163,7 +163,7 @@ body {
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #111;
+  color: #000;
   margin-bottom: 8px;
 }
 .item {
@@ -177,17 +177,17 @@ body {
 .qty {
   font-size: 20px;
   font-weight: 900;
-  color: #111;
+  color: #000;
   min-width: 32px;
   line-height: 1.1;
   padding-top: 1px;
   flex-shrink: 0;
 }
 .item-body { flex: 1; }
-.item-name { font-size: 13px; font-weight: 700; color: #111; line-height: 1.3; }
-.var       { font-size: 11px; font-weight: bold; color: #111; margin-top: 1px; }
-.combo-line { font-size: 11px; color: #111; padding-left: 6px; margin-top: 2px; font-weight: bold; }
-.addon     { font-size: 11px; font-weight: bold; color: #111; padding-left: 6px; margin-top: 1px; }
+.item-name { font-size: 13px; font-weight: 700; color: #000; line-height: 1.3; }
+.var       { font-size: 11px; font-weight: bold; color: #000; margin-top: 1px; }
+.combo-line { font-size: 11px; color: #000; padding-left: 6px; margin-top: 2px; font-weight: bold; }
+.addon     { font-size: 11px; font-weight: bold; color: #000; padding-left: 6px; margin-top: 1px; }
 .note      {
   font-size: 11px; font-weight: 700; color: #c00;
   padding: 2px 5px; margin-top: 3px;
