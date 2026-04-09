@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import PageLoader from "../components/ui/PageLoader";
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -534,9 +535,7 @@ export default function ReportsPage() {
           <ExportTab from={from} to={to} />
         ) : (
           <>
-            {loading && (
-              <p style={{ color: "#999", padding: "24px 0" }}>Loading report...</p>
-            )}
+            {loading && <PageLoader text="Loading report…" />}
             {error && !loading && (
               <p className="form-error" style={{ marginBottom: "12px" }}>{error}</p>
             )}
