@@ -123,6 +123,7 @@ body {
   padding: 14px 12px 16px;
   border: 1px solid #ccc;
   font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
   line-height: 1.5;
 }
 .slip-label {
