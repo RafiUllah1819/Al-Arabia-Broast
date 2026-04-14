@@ -379,7 +379,9 @@ button {
   background: #fff;
   border-radius: 10px;
   border: 1px solid #E5E7EB;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
@@ -4542,11 +4544,15 @@ button {
     min-width: 110px;
   }
 
-  /* Action buttons in payments — keep in a flex row */
+  /* Action buttons in payments — keep in a flex row, never wrap */
+  .payments-actions-cell {
+    white-space: nowrap;
+  }
+
   .payments-actions-wrap {
     display: flex;
     gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   /* ── POS: narrow the cart slightly so product grid keeps breathing room */
@@ -5155,15 +5161,16 @@ button {
     font-size: 13px;
   }
 
-  /* Payments: action buttons stack vertically */
+  /* Payments: action buttons stay in a row — table scrolls horizontally */
   .payments-actions-wrap {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 4px;
-    min-width: 80px;
+    min-width: unset;
   }
 
   .payments-actions-wrap .btn {
-    width: 100%;
+    width: auto;
     text-align: center;
   }
 
