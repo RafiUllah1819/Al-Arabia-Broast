@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
 import PageLoader from "../components/ui/PageLoader";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -248,7 +249,7 @@ body {
 
 // ── Ticket card ───────────────────────────────────────────────────────────────
 
-function Ticket({ order, onComplete, completing }) {
+function Ticket({ order, onComplete, completing, onCancel, cancelling, canCancel }) {
   const [elapsed, setElapsed] = useState(() => getElapsed(order.created_at));
 
   useEffect(() => {
@@ -363,6 +364,15 @@ function Ticket({ order, onComplete, completing }) {
         >
           Print
         </button>
+        {canCancel && (
+          <button
+            className="kt-btn-cancel"
+            disabled={cancelling}
+            onClick={() => onCancel(order.id, order.order_number)}
+          >
+            {cancelling ? "…" : "Cancel"}
+          </button>
+        )}
         <button
           className="kt-btn-complete"
           disabled={completing}
@@ -378,10 +388,14 @@ function Ticket({ order, onComplete, completing }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function KitchenPage() {
+  const { user }     = useAuth();
+  const canCancel    = user?.role === "admin" || user?.role === "manager";
+
   const [orders,      setOrders]      = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState("");
   const [completing,  setCompleting]  = useState({});
+  const [cancelling,  setCancelling]  = useState({});
   const [lastRefresh, setLastRefresh] = useState(null);
 
   const fetchOrders = useCallback(() => {
@@ -418,6 +432,26 @@ export default function KitchenPage() {
       setError("Network error. Please try again.");
     } finally {
       setCompleting((prev) => ({ ...prev, [orderId]: false }));
+    }
+  }
+
+  async function handleCancel(orderId, orderNumber) {
+    if (!confirm(`Cancel order ${orderNumber}? This cannot be undone.`)) return;
+    setCancelling((prev) => ({ ...prev, [orderId]: true }));
+    setError("");
+    try {
+      const res  = await fetch(`/api/orders/${orderId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to cancel order."); return; }
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setCancelling((prev) => ({ ...prev, [orderId]: false }));
     }
   }
 
@@ -475,6 +509,9 @@ export default function KitchenPage() {
               order={order}
               completing={!!completing[order.id]}
               onComplete={handleComplete}
+              canCancel={canCancel}
+              cancelling={!!cancelling[order.id]}
+              onCancel={handleCancel}
             />
           ))}
         </div>

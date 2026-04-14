@@ -189,10 +189,11 @@ function CollectPaymentModal({ order, onClose, onCollected }) {
 
 // ── Bill Detail Modal ──────────────────────────────────────────────────────────
 
-function BillDetailModal({ orderId, settings, onClose }) {
-  const [order,   setOrder]   = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState("");
+function BillDetailModal({ orderId, settings, onClose, onCancelled, canCancel }) {
+  const [order,      setOrder]      = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     fetch(`/api/orders/detail?id=${orderId}`)
@@ -209,6 +210,27 @@ function BillDetailModal({ orderId, settings, onClose }) {
     if (!order) return;
     printReceipt(order, settings);
     onClose();
+  }
+
+  async function handleCancel() {
+    if (!confirm(`Cancel order ${order.order_number}? This cannot be undone.`)) return;
+    setCancelling(true);
+    setError("");
+    try {
+      const res  = await fetch(`/api/orders/${orderId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to cancel order."); return; }
+      setOrder((prev) => ({ ...prev, status: "cancelled" }));
+      if (onCancelled) onCancelled(orderId);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setCancelling(false);
+    }
   }
 
   const pay = order ? paymentLabel(order) : null;
@@ -384,9 +406,19 @@ function BillDetailModal({ orderId, settings, onClose }) {
         </div>
 
         <div className="modal-footer">
+          {canCancel && order && order.status !== "cancelled" && order.status !== "completed" && (
+            <button
+              className="btn"
+              style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelling..." : "Cancel Order"}
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
           {order && (
-            <button className="btn btn-primary" onClick={handlePrint}>🖨 Print Bill</button>
+            <button className="btn btn-primary" onClick={handlePrint}>Print Bill</button>
           )}
         </div>
       </div>
@@ -407,6 +439,7 @@ export default function PaymentsPage() {
   const [selectedId,      setSelectedId]      = useState(null);
   const [collectingOrder, setCollectingOrder] = useState(null);
   const [clearing,        setClearing]        = useState(false);
+  const [cancellingId,    setCancellingId]    = useState(null);
 
   // Filters
   const [dateFilter, setDateFilter] = useState("today");
@@ -438,6 +471,28 @@ export default function PaymentsPage() {
   }, [dateFilter, typeFilter, payFilter]);
 
   useEffect(() => { fetchBills(); }, [fetchBills]);
+
+  async function handleCancelOrder(orderId, orderNumber) {
+    if (!confirm(`Cancel order ${orderNumber}? This cannot be undone.`)) return;
+    setCancellingId(orderId);
+    setError("");
+    try {
+      const res  = await fetch(`/api/orders/${orderId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to cancel order."); return; }
+      setOrders((prev) =>
+        prev.map((o) => o.id === orderId ? { ...o, status: "cancelled" } : o)
+      );
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   async function handleClearData() {
     if (!confirm("This will permanently delete ALL orders, order items, and payments. Tables will be reset to available.\n\nAre you sure?")) return;
@@ -614,10 +669,20 @@ export default function PaymentsPage() {
                       <div className="payments-actions-wrap" style={{ gap: "8px" }}>
                         {canCollect && (
                           <button
-                            className="btn btn-sm btn-primary me-2"
+                            className="btn btn-sm btn-primary"
                             onClick={() => setCollectingOrder(o)}
                           >
                             Collect
+                          </button>
+                        )}
+                        {isAdmin && o.status !== "cancelled" && o.status !== "completed" && (
+                          <button
+                            className="btn btn-sm"
+                            style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
+                            onClick={() => handleCancelOrder(o.id, o.order_number)}
+                            disabled={cancellingId === o.id}
+                          >
+                            {cancellingId === o.id ? "..." : "Cancel"}
                           </button>
                         )}
                         <button
@@ -652,6 +717,12 @@ export default function PaymentsPage() {
           orderId={selectedId}
           settings={settings}
           onClose={() => setSelectedId(null)}
+          canCancel={isAdmin}
+          onCancelled={(id) => {
+            setOrders((prev) =>
+              prev.map((o) => o.id === id ? { ...o, status: "cancelled" } : o)
+            );
+          }}
         />
       )}
 

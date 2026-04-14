@@ -2854,6 +2854,29 @@ button {
   cursor: not-allowed;
 }
 
+.kt-btn-cancel {
+  flex: 1;
+  background: #FEF2F2;
+  color: #EF4444;
+  border: 1px solid #FECACA;
+  padding: 8px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.kt-btn-cancel:hover:not(:disabled) {
+  background: #FEE2E2;
+  border-color: #EF4444;
+}
+
+.kt-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Placeholder page */
 .placeholder-page {
   display: flex;
@@ -4610,6 +4633,7 @@ button {
 
   /* Bigger touch targets for action buttons on tablet */
   .kt-btn-print,
+  .kt-btn-cancel,
   .kt-btn-complete {
     padding: 11px 8px;
   }
@@ -4975,8 +4999,9 @@ button {
     padding-top: 14px;
   }
 
-  /* Large tap targets for Print / Start / Complete buttons */
+  /* Large tap targets for Print / Cancel / Start / Complete buttons */
   .kt-btn-print,
+  .kt-btn-cancel,
   .kt-btn-complete {
     padding: 14px 8px;
     font-size: 15px;
@@ -5354,6 +5379,7 @@ button {
 
   /* Kitchen action buttons: a touch more height on the smallest screens */
   .kt-btn-print,
+  .kt-btn-cancel,
   .kt-btn-complete {
     padding: 15px 8px;
     min-height: 52px;
