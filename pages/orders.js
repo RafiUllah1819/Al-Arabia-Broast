@@ -305,11 +305,12 @@ export default function OrdersPage() {
   const { user }  = useAuth();
   const isAdmin   = user?.role === "admin" || user?.role === "manager";
 
-  const [orders,     setOrders]     = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState("");
-  const [selectedId, setSelectedId] = useState(null);
-  const [clearing,   setClearing]   = useState(false);
+  const [orders,      setOrders]      = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState("");
+  const [selectedId,  setSelectedId]  = useState(null);
+  const [clearing,    setClearing]    = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
 
   // Filters
   const [dateFilter, setDateFilter] = useState("today");
@@ -335,6 +336,28 @@ export default function OrdersPage() {
   }, [dateFilter, payFilter, typeFilter]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  async function handleCancelOrder(orderId, orderNumber) {
+    if (!confirm(`Cancel order ${orderNumber}? This cannot be undone.`)) return;
+    setCancellingId(orderId);
+    setError("");
+    try {
+      const res  = await fetch(`/api/orders/${orderId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to cancel order."); return; }
+      setOrders((prev) =>
+        prev.map((o) => o.id === orderId ? { ...o, status: "cancelled" } : o)
+      );
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   async function handleClearData() {
     if (!confirm("This will permanently delete ALL orders, order items, and payments. Tables will be reset to available.\n\nAre you sure?")) return;
@@ -492,13 +515,25 @@ export default function OrdersPage() {
                       {o.status}
                     </span>
                   </td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-secondary"
-                      onClick={() => setSelectedId(o.id)}
-                    >
-                      View
-                    </button>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      {isAdmin && o.status !== "cancelled" && o.status !== "completed" && (
+                        <button
+                          className="btn btn-sm"
+                          style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
+                          onClick={() => handleCancelOrder(o.id, o.order_number)}
+                          disabled={cancellingId === o.id}
+                        >
+                          {cancellingId === o.id ? "..." : "Cancel"}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => setSelectedId(o.id)}
+                      >
+                        View
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
