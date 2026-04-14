@@ -40,10 +40,13 @@ const PAY_STYLE = {
 
 // ── Order Detail Modal ────────────────────────────────────────────────────────
 
-function OrderDetailModal({ orderId, onClose }) {
-  const [order,   setOrder]   = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState("");
+function OrderDetailModal({ orderId, onClose, onCancelled }) {
+  const { user }     = useAuth();
+  const canCancel    = user?.role === "admin" || user?.role === "manager";
+  const [order,      setOrder]      = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -56,6 +59,27 @@ function OrderDetailModal({ orderId, onClose }) {
       .catch(() => setError("Failed to load order."))
       .finally(() => setLoading(false));
   }, [orderId]);
+
+  async function handleCancel() {
+    if (!confirm(`Cancel order ${order.order_number}? This cannot be undone.`)) return;
+    setCancelling(true);
+    setError("");
+    try {
+      const res  = await fetch(`/api/orders/${orderId}`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to cancel order."); return; }
+      setOrder((prev) => ({ ...prev, status: "cancelled" }));
+      if (onCancelled) onCancelled(orderId);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -258,6 +282,16 @@ function OrderDetailModal({ orderId, onClose }) {
         </div>
 
         <div className="modal-footer">
+          {canCancel && order && order.status !== "cancelled" && order.status !== "completed" && (
+            <button
+              className="btn"
+              style={{ background: "#FEF2F2", color: "#EF4444", border: "1px solid #FECACA" }}
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelling..." : "Cancel Order"}
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
         </div>
       </div>
@@ -487,6 +521,11 @@ export default function OrdersPage() {
         <OrderDetailModal
           orderId={selectedId}
           onClose={() => setSelectedId(null)}
+          onCancelled={(id) => {
+            setOrders((prev) =>
+              prev.map((o) => o.id === id ? { ...o, status: "cancelled" } : o)
+            );
+          }}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { query } from "../lib/db";
+import { query, withTransaction } from "../lib/db";
 
 /**
  * Generate the next order number inside a transaction.
@@ -490,6 +490,51 @@ export async function updateOrderTotals(client, { orderId, addSubtotal, resetKit
     [addSubtotal, orderId]
   );
   return res.rows[0];
+}
+
+/**
+ * Cancel an order.
+ * Allowed from any status except 'completed' or already 'cancelled'.
+ * If the order has a dine-in table, frees it back to 'available'.
+ */
+export async function cancelOrder(id) {
+  const cur = await query(
+    `SELECT o.status, o.table_id
+     FROM orders o
+     WHERE o.id = $1`,
+    [id]
+  );
+  if (!cur.rows[0]) {
+    const e = new Error("Order not found.");
+    e.status = 404;
+    throw e;
+  }
+  const { status, table_id } = cur.rows[0];
+  if (status === "cancelled") {
+    const e = new Error("Order is already cancelled.");
+    e.status = 400;
+    throw e;
+  }
+  if (status === "completed") {
+    const e = new Error("Cannot cancel a completed order.");
+    e.status = 400;
+    throw e;
+  }
+
+  // Use a transaction so the order update and table release are atomic
+  return withTransaction(async (client) => {
+    const res = await client.query(
+      `UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = $1 RETURNING id, status`,
+      [id]
+    );
+    if (table_id) {
+      await client.query(
+        `UPDATE tables SET status = 'available' WHERE id = $1`,
+        [table_id]
+      );
+    }
+    return res.rows[0];
+  });
 }
 
 /**
