@@ -37,11 +37,11 @@ export default async function handler(req, res) {
 
   try {
     const [stats, hourly, recentOrders, todaySales, monthlySales, todayExpenses, monthlyExpenses] = await Promise.all([
-      getDashboardStats(today, monthStart),
-      getTodayHourly(today),
+      getDashboardStats(today, monthStart, tz),
+      getTodayHourly(today, tz),
       getRecentOrders(10),
-      getTodayProductSales(today),
-      getMonthlyProductSales(monthStart, today),
+      getTodayProductSales(today, tz),
+      getMonthlyProductSales(monthStart, today, tz),
       getTotalExpensesByDate(today),
       getTotalExpensesByRange(monthStart, today),
     ]);

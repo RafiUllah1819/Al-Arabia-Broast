@@ -4,18 +4,21 @@ import { query } from "../lib/db";
 
 /**
  * Dashboard stats in three parallel queries.
+ *
+ * created_at is stored in UTC.  We convert it to the restaurant's local
+ * timezone using AT TIME ZONE before extracting the date so that "today"
+ * boundaries respect local midnight, not UTC midnight.
+ *
  * @param {string} today      – 'YYYY-MM-DD' in the restaurant's local timezone
  * @param {string} monthStart – 'YYYY-MM-01' in the restaurant's local timezone
- * Returns: {
- *   total_orders, paid_orders, today_revenue, avg_order_value,  — today
- *   monthly_revenue, unpaid_bills,                               — broader
- *   kitchen_pending                                              — live queue
- * }
+ * @param {string} tz         – IANA timezone name, e.g. 'Asia/Karachi'
  */
-export async function getDashboardStats(today, monthStart) {
+export async function getDashboardStats(today, monthStart, tz) {
   const [salesRes, kitchenRes, broadRes] = await Promise.all([
 
-    // Today's sales stats — compare DATE portion of the stored local timestamp
+    // Today's sales stats
+    // AT TIME ZONE 'UTC' interprets the stored TIMESTAMP as UTC,
+    // then AT TIME ZONE tz converts to local time before extracting the date.
     query(
       `SELECT
          COUNT(DISTINCT o.id)                                               AS total_orders,
@@ -28,8 +31,8 @@ export async function getDashboardStats(today, monthStart) {
          )                                                                   AS avg_order_value
        FROM   orders  o
        LEFT   JOIN payments p ON p.order_id = o.id
-       WHERE  o.created_at::DATE = $1`,
-      [today]
+       WHERE  (o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $2)::DATE = $1`,
+      [today, tz]
     ),
 
     // Live kitchen queue
@@ -39,12 +42,12 @@ export async function getDashboardStats(today, monthStart) {
        WHERE  status IN ('pending', 'preparing')`
     ),
 
-    // Monthly revenue + unpaid bills (all-time scan, monthly filter via CASE)
+    // Monthly revenue + unpaid bills
     query(
       `SELECT
          COALESCE(SUM(
            CASE WHEN p.status = 'paid'
-                AND o.created_at::DATE BETWEEN $1 AND $2
+                AND (o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $3)::DATE BETWEEN $1 AND $2
                 THEN p.amount END
          ), 0) AS monthly_revenue,
          COUNT(DISTINCT
@@ -53,7 +56,7 @@ export async function getDashboardStats(today, monthStart) {
          )     AS unpaid_bills
        FROM   orders  o
        LEFT   JOIN payments p ON p.order_id = o.id`,
-      [monthStart, today]
+      [monthStart, today, tz]
     ),
   ]);
 
@@ -69,19 +72,20 @@ export async function getDashboardStats(today, monthStart) {
  * Revenue and order count grouped by hour for today (0-23).
  * Only returns hours that have orders — the UI fills the gaps.
  * @param {string} today – 'YYYY-MM-DD' in the restaurant's local timezone
+ * @param {string} tz    – IANA timezone name, e.g. 'Asia/Karachi'
  */
-export async function getTodayHourly(today) {
+export async function getTodayHourly(today, tz) {
   const res = await query(
     `SELECT
-       EXTRACT(HOUR FROM o.created_at)::INTEGER AS hour,
+       EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $2))::INTEGER AS hour,
        COUNT(DISTINCT o.id)                     AS order_count,
        COALESCE(SUM(CASE WHEN p.status = 'paid' THEN p.amount END), 0) AS revenue
      FROM   orders  o
      LEFT   JOIN payments p ON p.order_id = o.id
-     WHERE  o.created_at::DATE = $1
+     WHERE  (o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $2)::DATE = $1
      GROUP  BY hour
      ORDER  BY hour ASC`,
-    [today]
+    [today, tz]
   );
   return res.rows;
 }
@@ -110,8 +114,9 @@ export async function getRecentOrders(limit = 10) {
  * All products sold in paid orders today, grouped by product + variant.
  * Used on the dashboard "Today's Product Sales" section.
  * @param {string} today – 'YYYY-MM-DD' in the restaurant's local timezone
+ * @param {string} tz    – IANA timezone name, e.g. 'Asia/Karachi'
  */
-export async function getTodayProductSales(today) {
+export async function getTodayProductSales(today, tz) {
   const res = await query(
     `SELECT
        oi.product_name,
@@ -121,10 +126,10 @@ export async function getTodayProductSales(today) {
      FROM   order_items oi
      JOIN   orders   o ON o.id    = oi.order_id
      JOIN   payments p ON p.order_id = o.id AND p.status = 'paid'
-     WHERE  o.created_at::DATE = $1
+     WHERE  (o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $2)::DATE = $1
      GROUP  BY oi.product_name, oi.variant_name
      ORDER  BY total_qty DESC, oi.product_name ASC`,
-    [today]
+    [today, tz]
   );
   return res.rows;
 }
@@ -134,8 +139,9 @@ export async function getTodayProductSales(today) {
  * Used on the dashboard "This Month's Product Sales" section.
  * @param {string} monthStart – 'YYYY-MM-01' in the restaurant's local timezone
  * @param {string} today      – 'YYYY-MM-DD' in the restaurant's local timezone
+ * @param {string} tz         – IANA timezone name, e.g. 'Asia/Karachi'
  */
-export async function getMonthlyProductSales(monthStart, today) {
+export async function getMonthlyProductSales(monthStart, today, tz) {
   const res = await query(
     `SELECT
        oi.product_name,
@@ -145,10 +151,10 @@ export async function getMonthlyProductSales(monthStart, today) {
      FROM   order_items oi
      JOIN   orders   o ON o.id    = oi.order_id
      JOIN   payments p ON p.order_id = o.id AND p.status = 'paid'
-     WHERE  o.created_at::DATE BETWEEN $1 AND $2
+     WHERE  (o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $3)::DATE BETWEEN $1 AND $2
      GROUP  BY oi.product_name, oi.variant_name
      ORDER  BY total_qty DESC, oi.product_name ASC`,
-    [monthStart, today]
+    [monthStart, today, tz]
   );
   return res.rows;
 }
