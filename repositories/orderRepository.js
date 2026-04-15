@@ -133,7 +133,13 @@ export async function listOrders({ ownUserId, dateFilter, paymentStatus, orderTy
   }
 
   if (dateFilter === "today") {
-    conditions.push(`DATE(o.created_at) = CURRENT_DATE`);
+    const tz      = process.env.DB_TIMEZONE || "UTC";
+    const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+    params.push(todayStr);
+    const todayIdx = params.length;
+    params.push(tz);
+    const tzIdx = params.length;
+    conditions.push(`(o.created_at AT TIME ZONE 'UTC' AT TIME ZONE $${tzIdx})::DATE = $${todayIdx}`);
   }
 
   if (paymentStatus === "unpaid") {
