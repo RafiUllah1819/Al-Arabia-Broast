@@ -11,23 +11,37 @@ import {
   getTotalExpensesByRange,
 } from "../../../repositories/expenseRepository";
 
+/**
+ * Returns the current date as 'YYYY-MM-DD' in the restaurant's configured
+ * timezone (DB_TIMEZONE env var, e.g. 'Asia/Karachi').
+ * Falls back to UTC when the variable is not set.
+ *
+ * Using Intl.DateTimeFormat with 'en-CA' locale gives ISO-style date strings
+ * ('YYYY-MM-DD') with no extra library required.
+ */
+function getLocalDateStr(tz) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const user = await requireAuth(req, res, ["admin", "manager"]);
   if (!user) return;
 
-  const d          = new Date();
-  const today      = d.toISOString().slice(0, 10);
-  const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+  // Compute dates in the restaurant's local timezone so midnight boundaries
+  // are correct regardless of the UTC clock on the database server.
+  const tz         = process.env.DB_TIMEZONE || "UTC";
+  const today      = getLocalDateStr(tz);
+  const monthStart = `${today.slice(0, 7)}-01`;
 
   try {
     const [stats, hourly, recentOrders, todaySales, monthlySales, todayExpenses, monthlyExpenses] = await Promise.all([
-      getDashboardStats(),
-      getTodayHourly(),
+      getDashboardStats(today, monthStart),
+      getTodayHourly(today),
       getRecentOrders(10),
-      getTodayProductSales(),
-      getMonthlyProductSales(),
+      getTodayProductSales(today),
+      getMonthlyProductSales(monthStart, today),
       getTotalExpensesByDate(today),
       getTotalExpensesByRange(monthStart, today),
     ]);
