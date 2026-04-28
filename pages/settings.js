@@ -276,6 +276,9 @@ export default function SettingsPage() {
             <div className="rp-sep" />
             <div className="rp-footer">{form.receipt_footer || "Thank you for your order!"}</div>
             {form.phone && <div className="rp-footer-phone">{form.phone}</div>}
+            <div style={{ textAlign: "center", fontSize: "10px", color: "#000", marginTop: "10px", borderTop: "1px dashed #bbb", paddingTop: "6px" }}>
+              Designed &amp; Developed by Rafi<br />+923469994131
+            </div>
           </div>
         </div>
       </div>
@@ -329,6 +332,11 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Developer credit ── */}
+      <div style={{ marginTop: "32px", textAlign: "center", fontSize: "12px", color: "#000", paddingBottom: "8px" }}>
+        Designed &amp; Developed by Rafi &nbsp;|&nbsp; +923469994131
+      </div>
     </div>
   );
 }
